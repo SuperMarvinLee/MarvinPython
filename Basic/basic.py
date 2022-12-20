@@ -64,3 +64,19 @@ s = 'Hello, Runoob'
 print(str(s))
 #repr()： 产生一个解释器易读的表达形式
 print(repr(s))
+
+#
+a, b = 0, 1
+while b < 10:
+    print(b,end=" ")
+    a, b = b, a+b
+
+for i in range(-10, -100, -30) :
+    print(i)
+
+print (dict([('sape', 4139), ('guido', 4127), ('jack', 4098)]))
+
+questions = ['name', 'quest', 'favorite color']
+answers = ['lancelot', 'the holy grail', 'blue']
+for q, a in zip(questions, answers):
+    print("What is your {0}?  It is {1}.".format(q, a))

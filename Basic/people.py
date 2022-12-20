@@ -62,5 +62,6 @@ class superStar(star,singer):#在多继承时,如果子类没有重写父类的�
 
 p = superStar('katy',33,'歌手')
 p.speak()
-print(p.jsonformat())
-print(json.dumps(p,ensure_ascii=False,default=p.jsonformat()))
+#print(p.jsonformat())
+#print(json.dumps(p.jsonformat()))
+print(json.dumps(p,ensure_ascii=False,default=lambda obj:obj.__dict__))
