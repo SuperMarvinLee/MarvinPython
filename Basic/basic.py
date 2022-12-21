@@ -80,3 +80,34 @@ questions = ['name', 'quest', 'favorite color']
 answers = ['lancelot', 'the holy grail', 'blue']
 for q, a in zip(questions, answers):
     print("What is your {0}?  It is {1}.".format(q, a))
+
+#加了星号 * 的参数会以元组(tuple)的形式导入，存放所有未命名的变量参数。
+def oneStarArgs(arg1,*arg2):
+    print(arg1)#1
+    print(arg2)#(2,3,4,5)
+oneStarArgs(1,2,3,4,5)
+#加了两个星号 ** 的参数会以字典的形式导入。
+def twoStarArgs(arg1,**arg2):
+    print(arg1)#1
+    print(arg2)#{'a': 2, 'b': 3, 'c': 4, 'd': 5}
+twoStarArgs(1,a=2,b=3,c=4,d=5)
+
+#声明函数时，参数中星号 * 可以单独出现
+#如果单独出现星号 *，则星号 * 后的参数必须用关键字传入：
+def add(a,b,*,c):
+    print(a+b+c)
+add(1,2,c=3)
+
+#lambda
+def myfunc(n):
+    return lambda a:a*n
+mydouble = myfunc(2) 
+mytriper = myfunc(3)
+print(mydouble)
+print(mydouble(11))
+print(mytriper(11))
+
+#强制未知参数
+#Python3.8 新增了一个函数形参语法 / 用来指明函数形参必须使用指定位置参数，不能使用关键字参数的形式。
+
+

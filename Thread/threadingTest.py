@@ -22,7 +22,7 @@ def print_time(threadName,delay,counter):
             threadName.exit()
         time.sleep(delay)
         print(f'{threadName}:{time.ctime(time.time())}')
-        count -= 1
+        counter -= 1
 
 t1 = myThread(1,'thread-1',1)
 t2 = myThread(2,'thread-2',2)
