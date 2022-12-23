@@ -538,6 +538,8 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.put(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
 
+    #批量更新顶点属性
+
     def delete_vertex_properties(self, vertex_id, label, properties):
         """
         删除顶点属性
@@ -704,6 +706,8 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.put(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
 
+    #批量更新边属性
+
     def delete_edge_properties(self, edge_id, properties):
         """
         删除边的属性
@@ -819,7 +823,6 @@ class CirroGraphClient(object):
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
-
     def traverser_kout(self, source, direction, depth, label="", nearest="true"):
         """
         根据起始顶点、方向、边的类型（可选）和深度depth，查找从起始顶点出发恰好depth步可达的顶点
@@ -854,35 +857,6 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def traverser_kneighbor(self, source, direction, depth, label=""):
-        """
-        根据起始顶点、方向、边的类型（可选）和深度depth，查找包括起始顶点在内、depth步之内可达的所有顶点
-        :param source: 起始顶点id
-        :param direction: 起始顶点向外发散的方向（OUT,IN,BOTH）
-        :param depth: 步数
-        :param label: 边的类型
-        :return: CirroGraphResponse
-        """
-        url = self.host + "/graphs" + "/" + self.graph + "/traversers/kneighbor?"
-        para = ""
-        if source == "":
-            return CirroGraphResponse(400, "source can not be empty")
-        else:
-            para = para + "&source=\"" + source + "\""
-        if direction == "":
-            return CirroGraphResponse(400, "direction can not be empty")
-        else:
-            para = para + "&direction=" + direction
-        if depth == "":
-            return CirroGraphResponse(400, "depth can not be empty")
-        else:
-            para = para + "&depth=" + str(depth)
-        if label != "":
-            para = para + "&label=" + label
-
-        url = url + para[1:]
-        
-        return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
     def traverser_vertices(self, vertex_ids):
         """
@@ -1118,6 +1092,150 @@ class CirroGraphClient(object):
         }
         
         return CirroGraphResponse(requests.post(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
+
+class CirroGraphTraverser():
+    """
+    CirroGraph Traverser API
+    """
+
+    def __init__(self,host,graph,headers={},auth=()):
+        
+        self.host = host
+        self.graph = graph
+        self.auth = auth
+        
+        if headers=={}:
+            self.headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 '
+                            '(KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36',
+                'Content-Type': 'application/json'
+            }
+        else:
+            self.headers = headers
+    
+    def kout_get(self, source,depth,direction="",max_degree="",capacity="",limit="",label="", nearest=""):
+        """
+        根据起始顶点、方向、边的类型（可选）和深度depth，查找从起始顶点出发恰好depth步可达的顶点
+        :param source: 起始顶点id
+        :param direction: 起始顶点向外发散的方向（OUT,IN,BOTH）
+        :param depth: 步数
+        :param label: 边的类型
+        :param nearest: 默认为true，代表起始顶点到达结果顶点的最短路径长度为depth，不存在更短的路径；nearest为false时，
+                        代表起始顶点到结果顶点有一条长度为depth的路径（未必最短且可以有环)
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/traversers/kout?"
+        para = ""
+        if type(source) is int:
+                para = f'{para}&source={source}'
+        else:
+            if source.isnumeric():
+                para = f'{para}&source={source}'
+            else:
+                para = f'{para}&source="{source}"'
+        if depth != "":
+            para = para + "&max_depth=" + str(depth)
+        if direction != "":
+            para = para + "&direction=" + direction
+        if label != "":
+            para = para + "&label=" + label
+        if nearest != "":
+            para = para + "&nearest=" + label
+        if max_degree != "":
+            para = para + "&max_degree=" + label
+        if capacity != "":
+            para = para + "&capacity=" + label
+        if limit != "":
+            para = para + "&limit=" + label    
+
+        url = url + para[1:]
+        
+        return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
+
+    def kout_post(self,request):
+        '''
+        eg:
+        request = {
+            "source": 1,
+            "step": {
+            "direction": "BOTH",
+            "labels": ["knows", "created"],
+            "properties": {
+                "weight": "P.gt(0.1)"
+            },
+            "max_degree": 10000,
+            "skip_degree": 100000
+            },
+            "max_depth": 1,
+            "nearest": True,
+            "limit": 10000,
+            "with_vertex": True,
+            "with_path": True
+        }
+        '''
+        url = self.host + "/graphs" + "/" + self.graph + "/traversers/kout"
+        return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
+
+    def kneighbor_get(self, source,  depth, direction="BOTH",label="",max_degree="10000",limit="10000000"):
+        """
+        根据起始顶点、方向、边的类型（可选）和深度depth，查找包括起始顶点在内、depth步之内可达的所有顶点
+        :param source: 起始顶点id
+        :param direction: 起始顶点向外发散的方向（OUT,IN,BOTH）
+        :param depth: 步数
+        :param label: 边的类型
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/traversers/kneighbor?"
+        para = ""
+        if type(source) is int:
+                para = f'{para}&source={source}'
+        else:
+            if source.isnumeric():
+                para = f'{para}&source={source}'
+            else:
+                para = f'{para}&source="{source}"'
+        if direction != "":
+            para = para + "&direction=" + direction
+        if depth != "":
+            para = para + "&max_depth=" + str(depth)
+        if label != "":
+            para = para + "&label=" + label
+        if max_degree != "":
+            para = para + "&max_degree=" + label
+        if limit != "":
+            para = para + "&limit=" + label
+
+        url = url + para[1:]
+        
+        return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))    
+
+    def kneighbor_post(self,request):
+        url = self.host + "/graphs" + "/" + self.graph + "/traversers/kneighbor"
+        return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
+
+    def sameneighbors(self,vertex,other,direction="BOTH",label="",max_degree="10000",limit="10000000"):
+        url = self.host + "/graphs" + "/" + self.graph + "/traversers/kout?"
+        para = ""
+        if type(vertex) is int:
+            para = f'{para}&source={vertex}'
+        else:
+            para = f'{para}&source="{vertex}"'
+        if type(other) is int:
+            para = f'{para}&source={other}'
+        else:
+            para = f'{para}&source="{other}"'
+        if direction != "":
+            para = para + "&direction=" + direction
+        if label != "":
+            para = para + "&label=" + label
+        if max_degree != "":
+            para = para + "&max_degree=" + max_degree
+        if limit != "":
+            para = para + "&limit=" + limit    
+
+        url = url + para[1:]
+        
+        return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
 if __name__=="__main__":
     pass
