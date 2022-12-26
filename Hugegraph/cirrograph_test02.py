@@ -8,7 +8,7 @@
 
 import cirrograph_client as cirroclient
 
-# Client 测试：使用cirrograph.CirroGraphClient定义的方法
+# Client 测试:使用cirrograph.CirroGraphClient定义的方法
 # access CirroGraphClient Class
 
 # 新建一个CirroGraphClient对象
@@ -36,8 +36,8 @@ print(cirrograph.execute_germlin_get('cirrograph.traversal().V()').response)
 res = cirrograph.execute_germlin_post('cirrograph.traversal().V()')
 print(res.status_code,res.response)
 
-# 删除图对象以及数据（要注意顺序）
-# 1、删除点数据会把该点的关联边数据也删除；
+# 删除图对象以及数据(要注意顺序)
+# 1、删除点数据会把该点的关联边数据也删除;
 # 2、删除VertexLabel、EdgeLabel会把相应的数据和索引都删除。
 # 根据ID删除边数据、根据ID删除点数据
 res = cirrograph.delete_edge_id('L1>6>B3~W00000000>L2')
@@ -60,16 +60,16 @@ print(cirrograph.clone_graph("cirrograph_2","cirrograph").status_code)
 print(cirrograph.clear_graph("cirrograph_2").status_code)
 print(cirrograph.drop_graph("cirrograph_2").status_code)
 
-# 综合示例：以下示例通过CirroGraphCLient的方法来实现TinkerPop Modern图
+# 综合示例:以下示例通过CirroGraphCLient的方法来实现TinkerPop Modern图
 # 依次新增PropertyKey、VertexLabel、EdgeLabel
-# 步骤1：增加4个属性
-# 新增PropertyKey：两种方式新增属性（前一种可以扩展属性，后一种固定了3种参数）
+# 步骤1:增加4个属性
+# 新增PropertyKey:两种方式新增属性(前一种可以扩展属性,后一种固定了3种参数)
 cirrograph.create_propertykey({"name": "name","data_type": "TEXT","cardinality": "SINGLE" })
 cirrograph.create_propertykey({"name": "lang","data_type": "TEXT","cardinality": "SINGLE" })
 cirrograph.create_property_key("age","INT","SINGLE")
 cirrograph.create_property_key("weight","FLOAT","SINGLE")
 
-# 步骤2：增加2个VertexLabel
+# 步骤2:增加2个VertexLabel
 data = {
     "name": "person",
     "id_strategy": "CUSTOMIZE_NUMBER",
@@ -86,7 +86,7 @@ data = {
 res = cirrograph.create_vertexlabel(data)
 print(res.response)
 
-# 步骤3：增加2个EdgeLabel
+# 步骤3:增加2个EdgeLabel
 data = {
     "name": "knows",
     "source_label": "person",
@@ -112,7 +112,7 @@ data = {
 res = cirrograph.create_edgelabel(data)
 print(res.status_code,res.response)
 
-# 步骤4：增加2个IndexLabel
+# 步骤4:增加2个IndexLabel
 data = {
     "name": "personByName",
     "base_type": "VERTEX_LABEL",
@@ -133,7 +133,7 @@ data = {
 res = cirrograph.create_indexlabel(data)
 print(res.status_code,res.response)
 
-# 步骤5：增加顶点数据
+# 步骤5:增加顶点数据
 data = {
     "label": "person",
     "id":1,
@@ -197,7 +197,7 @@ res = cirrograph.create_vertex(data)
 print(res.status_code,res.response)
 
 
-# 步骤6：增加边数据
+# 步骤6:增加边数据
 data = {
     "label": "knows",
     "outV": 1,
@@ -273,9 +273,9 @@ res = cirrograph.create_edge(data)
 print(res.status_code,res.response)
 
 # 测试Gremlin: schema语句
-# 创建TinkerGraph Modern图：
-# 注意  1、使用""" """来标识多行语句；
-#      2、定义graph和schema变量：graph = cirrograph;schema = graph.schema(); 
+# 创建TinkerGraph Modern图:
+# 注意  1、使用""" """来标识多行语句;
+#      2、定义graph和schema变量:graph = cirrograph;schema = graph.schema(); 
 #      3、cirrograph是后台配置的图名称
 
 # gremlin语句开始

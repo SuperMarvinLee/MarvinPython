@@ -9,7 +9,7 @@ port = 9999
 
 serversocket.bind((host, port))
 
-# 设置最大连接数，超过后排队
+# 设置最大连接数,超过后排队
 serversocket.listen(5)
 
 while True:

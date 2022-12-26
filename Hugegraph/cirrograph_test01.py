@@ -27,46 +27,46 @@ auth = ('admin','cirrograph_admin')
 # 新建一个CirroGraphClient对象
 cirrograph = cirroclient.CirroGraphClient("http://localhost:8080", "cirrograph",headers=headers,auth=auth)
 
-# 示例1：查找所有图信息
+# 示例1:查找所有图信息
 url = 'http://localhost:8080/graphs'
 res = cirrograph.cirrograph_get(url)
 print(res.status_code,res.response)
 
-# 示例2：查找cirrograph图信息
+# 示例2:查找cirrograph图信息
 url="http://localhost:8080/graphs/cirrograph"
 res = cirrograph.cirrograph_get(url)
 print(res.status_code,res.response)
 
-# 示例3：查找cirrograph图schema信息
+# 示例3:查找cirrograph图schema信息
 url="http://localhost:8080/graphs/cirrograph/schema"
 res = cirrograph.cirrograph_get(url)
 print(res.status_code,res.response)
 
-# 测试Gremlin：遍历语句执行
-# 示例4：发送gremlin语句（GET），同步执行
+# 测试Gremlin:遍历语句执行
+# 示例4:发送gremlin语句(GET),同步执行
 url='http://localhost:8080/gremlin?gremlin=cirrograph.traversal().'
 gremlin = 'V()'
 url = url + gremlin
 res = cirrograph.cirrograph_get(url)
 print(res.status_code,res.response)
 
-# 示例5：发送gremlin语句（POST），同步执行
+# 示例5:发送gremlin语句(POST),同步执行
 url='http://localhost:8080/gremlin'
 data = {"gremlin": "cirrograph.traversal().V()" }
 print(cirrograph.cirrograph_post(url,data))
 
-# 示例6：发送gremlin语句（POST），异步执行,返回异步任务ID，根据异步任务ID查找结果
+# 示例6:发送gremlin语句(POST),异步执行,返回异步任务ID,根据异步任务ID查找结果
 url='http://localhost:8080/graphs/cirrograph/jobs/gremlin'
 data = { "gremlin": "cirrograph.traversal().V()" }
 print(cirrograph.cirrograph_post(url,data))
 
-# 示例7：异步执行后通过任务查询结果：示例中6是前述异步查询的任务号：
+# 示例7:异步执行后通过任务查询结果:示例中6是前述异步查询的任务号:
 url='http://localhost:8080/graphs/cirrograph/tasks/3'
 res = cirrograph.cirrograph_get(url)
 print(res.status_code,res.response)
 
-# 综合示例08：以下示例通过CirroGraph的rest服务来实现TinkerPop Modern图
-# 步骤1：增加4个属性
+# 综合示例08:以下示例通过CirroGraph的rest服务来实现TinkerPop Modern图
+# 步骤1:增加4个属性
 url='http://localhost:8080/graphs/cirrograph/schema/propertykeys'
 
 data = {"name": "name","data_type": "TEXT","cardinality": "SINGLE" }
@@ -85,7 +85,7 @@ data = {"name": "lang","data_type": "TEXT","cardinality": "SINGLE" }
 res = cirrograph.cirrograph_post(url,data)
 print(res.status_code,res.response)
 
-# 步骤2：增加2个VertexLabel
+# 步骤2:增加2个VertexLabel
 url='http://localhost:8080/graphs/cirrograph/schema/vertexlabels'
 data = {
     "name": "person",
@@ -106,7 +106,7 @@ data = {
 res = cirrograph.cirrograph_post(url,data)
 print(res.status_code,res.response)
 
-# 步骤3：增加2个EdgeLabel
+# 步骤3:增加2个EdgeLabel
 url='http://localhost:8080/graphs/cirrograph/schema/edgelabels'
 data = {
     "name": "knows",
@@ -133,7 +133,7 @@ data = {
 res = cirrograph.cirrograph_post(url,data)
 print(res.status_code,res.response)
 
-# 步骤4：增加2个IndexLabel
+# 步骤4:增加2个IndexLabel
 url='http://localhost:8080/graphs/cirrograph/schema/indexlabels'
 data = {
     "name": "personByName",
@@ -155,7 +155,7 @@ data = {
 res = cirrograph.cirrograph_post(url,data)
 print(res.status_code,res.response)
 
-# 步骤5：增加顶点数据
+# 步骤5:增加顶点数据
 url='http://localhost:8080/graphs/cirrograph/graph/vertices'
 data = {
     "label": "person",
@@ -218,7 +218,7 @@ data = {
 res = cirrograph.cirrograph_post(url,data)
 print(res.status_code,res.response)
 
-# 步骤6：增加边数据
+# 步骤6:增加边数据
 url='http://localhost:8080/graphs/cirrograph/graph/edges'
 data = {
     "label": "knows",
@@ -294,9 +294,9 @@ data = {
 res = cirrograph.cirrograph_post(url,data)
 print(res.status_code,res.response)
 
-# 综合示例9：删除图对象以及数据（要注意顺序）
+# 综合示例9:删除图对象以及数据(要注意顺序)
 
-# 步骤1：根据ID删除边数据
+# 步骤1:根据ID删除边数据
 url='http://localhost:8080/graphs/cirrograph/graph/edges'
 res = cirrograph.cirrograph_get(url)
 
@@ -304,7 +304,7 @@ url='http://localhost:8080/graphs/cirrograph/graph/edges/L1>6>B3~W00000000>L2'
 res = cirrograph.cirrograph_delete(url)
 print(res.status_code,res.response)
 
-# 步骤2：根据ID删除点数据
+# 步骤2:根据ID删除点数据
 url='http://localhost:8080/graphs/cirrograph/graph/vertices'
 res = cirrograph.cirrograph_get(url)
 
@@ -312,7 +312,7 @@ url='http://localhost:8080/graphs/cirrograph/graph/vertices/6'
 res = cirrograph.cirrograph_delete(url)
 print(res.status_code,res.response)
 
-# 步骤3：根据name删除边类型:    异步任务，相应数据也全部删除
+# 步骤3:根据name删除边类型:    异步任务,相应数据也全部删除
 url = 'http://localhost:8080/graphs/cirrograph/schema/edgelabels/knows'
 res = cirrograph.cirrograph_delete(url)
 
@@ -320,7 +320,7 @@ url = 'http://localhost:8080/graphs/cirrograph/schema/edgelabels/created'
 res = cirrograph.cirrograph_delete(url)
 print(res.status_code,res.response)
 
-# 步骤4：根据name删除点类型:没有关联的edgelabels才可以删除。异步任务，相应数据也全部删除
+# 步骤4:根据name删除点类型:没有关联的edgelabels才可以删除。异步任务,相应数据也全部删除
 url = 'http://localhost:8080/graphs/cirrograph/schema/vertexlabels/person'
 res = cirrograph.cirrograph_delete(url)
 
@@ -329,12 +329,12 @@ res = cirrograph.cirrograph_delete(url)
 print(res.status_code,res.response)
 # {"task_id":18}
 
-# 异步执行后通过任务查询结果：示例中18是前述异步查询的任务号：
+# 异步执行后通过任务查询结果:示例中18是前述异步查询的任务号:
 url='http://localhost:8080/graphs/cirrograph/tasks/18'
 res = cirrograph.cirrograph_get(url)
 print(res.status_code,res.response)
 
-# 步骤5：删除属性：异步任务
+# 步骤5:删除属性:异步任务
 url="http://localhost:8080/graphs/cirrograph/schema/propertykeys/age"
 res = cirrograph.cirrograph_delete(url)
 url="http://localhost:8080/graphs/cirrograph/schema/propertykeys/name"
@@ -346,7 +346,7 @@ res = cirrograph.cirrograph_delete(url)
 print(res.status_code,res.response)
 
 # 克隆图、清除图与删除图: 
-# cirrograph_1为克隆新图名称，cirrograph为基准图
+# cirrograph_1为克隆新图名称,cirrograph为基准图
 url='http://localhost:8080/graphs/cirrograph_1?clone_graph_name=cirrograph'
 res = cirrograph.cirrograph_post(url,{})
 print(res.status_code,res.response)
@@ -360,9 +360,9 @@ res = cirrograph.cirrograph_delete(url)
 print(res.status_code,res.response)
 
 # 测试Gremlin: schema语句
-# 创建TinkerGraph Modern图：
-# 注意  1、使用""" """来标识多行语句；
-#      2、定义graph和schema变量：graph = cirrograph;schema = graph.schema(); 
+# 创建TinkerGraph Modern图:
+# 注意  1、使用""" """来标识多行语句;
+#      2、定义graph和schema变量:graph = cirrograph;schema = graph.schema(); 
 #      3、cirrograph是后台配置的图名称
 
 # gremlin语句开始

@@ -11,9 +11,9 @@ class myThread (threading.Thread):
         self.name = name
         self.q = q
     def run(self):
-        print ("开启线程：" + self.name)
+        print ("开启线程:" + self.name)
         process_data(self.name, self.q)
-        print ("退出线程：" + self.name)
+        print ("退出线程:" + self.name)
 
 def process_data(threadName, q):
     while not exitFlag:

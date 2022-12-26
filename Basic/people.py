@@ -10,7 +10,7 @@ class peolpe:
         self.age = a
     
     def speak(self):
-        print(f'我是{self.name}，今年{self.age}岁!')
+        print(f'我是{self.name},今年{self.age}岁!')
 
 p = peolpe('bowen',25)
 p.speak()
@@ -28,7 +28,7 @@ class singer(peolpe):
         self.work = w
     
     def speak(self):
-        print(f'我是{self.work}:{self.name}，今年{self.age}岁!')
+        print(f'我是{self.work}:{self.name},今年{self.age}岁!')
 
 p = singer('katy',33,'歌手')
 p.speak()
@@ -41,7 +41,7 @@ class star():
         self.work = w
     
     def speak(self):
-        print(f'我是明星:{self.name}，我的职业是{self.work}')
+        print(f'我是明星:{self.name},我的职业是{self.work}')
 
 class superStar(star,singer):#在多继承时,如果子类没有重写父类的方法,子类在使用父类的方法时,哪个父类在前,就调用哪个父类的方法
     __name = ''
@@ -51,7 +51,7 @@ class superStar(star,singer):#在多继承时,如果子类没有重写父类的�
         self.__name = n
 
     def speak(self):
-        print(f'我是明星:{self.__name}，我的职业是{self.work},今年{self.age}岁')
+        print(f'我是明星:{self.__name},我的职业是{self.work},今年{self.age}岁')
 
     def jsonformat(self):
         return {

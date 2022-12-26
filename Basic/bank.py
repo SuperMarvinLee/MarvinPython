@@ -7,10 +7,10 @@ annual_rate = 0
 
 
 # 计算定投预期收益
-# 定投收益的计算公式为：M=a(1+x)[-1+(1+x)^n]/x;
-# 其中M代表预期收益，a代表每期定投金额，x代表收益率，而n代表定投期数。
-# 假设用户每月定投金额为300元，一年也就是3600元，年收益率为15%，
-# 定投期限为35年，则可以计算出收益为3600(1+15%)[-1+(1+15%)^35]/15%=3648044元。
+# 定投收益的计算公式为:M=a(1+x)[-1+(1+x)^n]/x;
+# 其中M代表预期收益,a代表每期定投金额,x代表收益率,而n代表定投期数。
+# 假设用户每月定投金额为300元,一年也就是3600元,年收益率为15%,
+# 定投期限为35年,则可以计算出收益为3600(1+15%)[-1+(1+15%)^35]/15%=3648044元。
 def fixed_investment(inv, a_rate, y):
     global means
     inv = 12 * inv
@@ -28,11 +28,11 @@ def balance():
     total = 0
     for i in means:
         total += i
-    print("你的资产总额为：%.2f" % total)
-    print("你的资产明细为：\n")
-    print("存款：%.2f" % means[0])
-    print("理财：%.2f" % means[1])
-    print("负债：%.2f" % means[2])
+    print("你的资产总额为:%.2f" % total)
+    print("你的资产明细为:\n")
+    print("存款:%.2f" % means[0])
+    print("理财:%.2f" % means[1])
+    print("负债:%.2f" % means[2])
 
 
 def saving(amount):
@@ -41,8 +41,8 @@ def saving(amount):
         print("存款金额不可小于 0！")
     else:
         means[0] += amount
-        print("已存款：%.2f 元" % amount)
-        print("当前余额：%.2f 元" % means[0])
+        print("已存款:%.2f 元" % amount)
+        print("当前余额:%.2f 元" % means[0])
 
 
 def draw_money(drawing):
@@ -53,8 +53,8 @@ def draw_money(drawing):
         print("取款金额不可超过余额！")
     else:
         means[0] -= drawing
-        print("已取款： %.2f 元" % drawing)
-        print("当前余额： %.2f 元" % means[0])
+        print("已取款: %.2f 元" % drawing)
+        print("当前余额: %.2f 元" % means[0])
 
 
 def loans(loan, rate, pay, years):
@@ -91,7 +91,7 @@ def future(years):
 
 def init():
     print()
-    print('''以下为可办理的业务：
+    print('''以下为可办理的业务:
         1. 查询资产
         2. 存款
         3. 取款
@@ -143,7 +143,7 @@ def main():
             print("欢迎下次光临！再见！")
             break
         else:
-            print("你输入的指令有误，请重新输入\n")
+            print("你输入的指令有误,请重新输入\n")
 
 
 if __name__ == '__main__':
