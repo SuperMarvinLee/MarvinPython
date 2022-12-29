@@ -15,7 +15,10 @@ class CirroGraphResponse(object):
     """
     def __init__(self, response):
         self.status_code = response.status_code
-        self.response = response.text
+        if(response.text != ''):
+            self.response = response.text
+        else:
+            self.response = response.status_code
 
 # CirroGraphClient Class
 class CirroGraphClient(object):
@@ -113,34 +116,97 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def get_graph_config(self):
+    def get_graph_config(self,graph):
         """
         查看某个图的配置,该操作需要管理员权限
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + self.graph + "conf?token=" + self.token
+        url = self.host + "/graphs" + "/" + graph +"/conf"
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def clone_graph(self,new_graph,cloned_graph):
+    def get_graph_mode(self,graph):
         """
-        基于当前图进行图克隆。该操作需要管理员权限
-        :param new_graph: 新克隆的图
-        :param cloned_graph: 被克隆的图
+        查看某个图的模式
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + new_graph + "?clone_graph_name=" + \
-              cloned_graph + "&token=" + self.token 
+        url = self.host + "/graphs" + "/" + graph +"/mode"
         
-        return CirroGraphResponse(requests.post(url, headers=self.headers,auth=self.auth))
+        return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
+
+    def set_graph_mode(self,graph,modename):
+        """
+        设置某个图的模式. 该操作需要管理员权限 
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + graph +"/mode"
+        
+        return CirroGraphResponse(requests.put(url,data=json.dumps(modename),headers=self.headers,auth=self.auth))
+
+    def get_graph_read_mode(self,graph):
+        """
+        查看某个图的读模式
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + graph +"/graph_read_mode"
+        
+        return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
+
+    def set_graph_read_mode(self,graph,modename):
+        """
+        设置某个图的读模式. 该操作需要管理员权限
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + graph +"/graph_read_mode"
+        
+        return CirroGraphResponse(requests.put(url,data=json.dumps(modename),headers=self.headers,auth=self.auth))
+
+    def graph_snapshot_create(self,graph):
+        """
+        创建快照
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + graph +"/snapshot_create"
+        
+        return CirroGraphResponse(requests.put(url,headers=self.headers,auth=self.auth))
+
+    #有bug
+    def graph_snapshot_resume(self,graph):
+        """
+        快照恢复
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + graph +"/snapshot_resume"
+        
+        return CirroGraphResponse(requests.put(url,headers=self.headers,auth=self.auth))
+
+    def graph_compact(self,graph):
+        """
+        手动压缩图，该操作需要管理员权限 
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + graph +"/compact"
+        
+        return CirroGraphResponse(requests.put(url,headers=self.headers,auth=self.auth))
+
+    # def clone_graph(self,new_graph,cloned_graph):
+    #     """
+    #     基于当前图进行图克隆。该操作需要管理员权限
+    #     :param new_graph: 新克隆的图
+    #     :param cloned_graph: 被克隆的图
+    #     :return: CirroGraphResponse
+    #     """
+    #     url = self.host + "/graphs" + "/" + new_graph + "?clone_graph_name=" + \
+    #           cloned_graph + "&token=" + self.token 
+        
+    #     return CirroGraphResponse(requests.post(url, headers=self.headers,auth=self.auth))
 
     def clear_graph(self,graph):
         """
         清空某个图的全部数据,包括schema、vertex、edge和索引等,该操作需要管理员权限
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph + "/clear?token=" + \
-              self.token + "&confirm_message=I%27m+sure+to+delete+all+data"
+        url = self.host + "/graphs" + "/" + graph + "/clear?confirm_message=I%27m+sure+to+delete+all+data"
         
         return CirroGraphResponse(requests.delete(url, headers=self.headers,auth=self.auth))
 
@@ -149,10 +215,17 @@ class CirroGraphClient(object):
         删除某个图,包含配置文件以及存储的全部数据,包括schema、vertex、edge和索引等,该操作需要管理员权限
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph + "/?token=" + \
-              self.token + "&confirm_message=I%27m%20sure%20to%20drop%20the%20graph"
+        url = self.host + "/graphs" + "/" + graph + "/?confirm_message=I%27m%20sure%20to%20drop%20the%20graph"
         
         return CirroGraphResponse(requests.delete(url, headers=self.headers,auth=self.auth))
+    
+    def create_graph(self,graph):
+        """
+        创建一个图，该操作需要管理员权限
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs/"+ graph +"/create"
+        return CirroGraphResponse(requests.post(url, headers=self.headers,auth=self.auth))
 
     def create_propertykey(self, propertykeys):
         """
@@ -662,30 +735,30 @@ class CirroGraphClient(object):
         """
         创建多条边
         :param data:
-                [
-                    {
-                        "label": "created",
-                        "outV": "1:peter",
-                        "inV": "2:lop",
-                        "outVLabel": "person",
-                        "inVLabel": "software",
-                        "properties": {
-                            "date": "2017-5-18",
-                            "weight": 0.2
-                        }
-                    },
-                    {
-                        "label": "knows",
-                        "outV": "1:marko",
-                        "inV": "1:vadas",
-                        "outVLabel": "person",
-                        "inVLabel": "person",
-                        "properties": {
-                            "date": "2016-01-10",
-                            "weight": 0.5
-                        }
+            [
+                {
+                    "label": "created",
+                    "outV": "1:peter",
+                    "inV": "2:lop",
+                    "outVLabel": "person",
+                    "inVLabel": "software",
+                    "properties": {
+                        "date": "2017-5-18",
+                        "weight": 0.2
                     }
-                ]
+                },
+                {
+                    "label": "knows",
+                    "outV": "1:marko",
+                    "inV": "1:vadas",
+                    "outVLabel": "person",
+                    "inVLabel": "person",
+                    "properties": {
+                        "date": "2016-01-10",
+                        "weight": 0.5
+                    }
+                }
+            ]
         :return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/graph/edges/batch"
@@ -810,7 +883,7 @@ class CirroGraphClient(object):
         :param value:
         :return: CirroGraphResponse
         """
-        return self.CreateVariables(key, value)
+        return self.create_variables(key, value)
 
     def get_variables(self):
         """
@@ -828,35 +901,39 @@ class CirroGraphClient(object):
         :return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/variables/" + key
-        requests.get(url, headers=self.headers,auth=self.auth)
-        return CirroGraphResponse()
+        return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def delete_variable(self, key):
+    def delete_variable_key(self, key):
         """
         删除某个键值对
         :param key:
         :return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/variables/" + key
-        requests.delete(url, headers=self.headers,auth=self.auth)
-        return CirroGraphResponse()
+        return CirroGraphResponse(requests.delete(url, headers=self.headers,auth=self.auth))
 
-    def get_tasks(self, status="success", limit=""):
+    def get_tasks(self, status="", limit=""):
         """
         列出某个图中全部的异步任务
         :param status: 异步任务的状态(success,failed)
         :param limit: 返回异步任务数目上限
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + self.graph + "/tasks?status=" + status
+        url = self.host + "/graphs" + "/" + self.graph + "/tasks?"
+        para = ''
+        if status != '':
+            para = f'{para}&status={status}' 
         if limit != "":
-            url = url + "&limit=" + limit
-        
+            para = f'{para}&limit={limit}'
+
+        url += para[1:]
+        print(url)
+
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
     def get_task(self, task_id):
         """
-        查看某个任务的信息
+        查看某个异步任务的信息
         :param task_id:
         :return: CirroGraphResponse
         """
@@ -873,6 +950,16 @@ class CirroGraphClient(object):
         url = self.host + "/graphs" + "/" + self.graph + "/tasks/" + task_id
         
         return CirroGraphResponse(requests.delete(url, headers=self.headers,auth=self.auth))
+    
+    def cancel_task(self, task_id):
+        """
+        取消某个异步任务，该异步任务必须具有处理中断的能力 
+        :param task_id:
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/tasks/" + task_id + '?action=cancel'
+        
+        return CirroGraphResponse(requests.put(url, headers=self.headers,auth=self.auth))
 
     def rebuild_indexlabel(self, indexlabel_name):
         """
@@ -907,27 +994,6 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.put(url, headers=self.headers,auth=self.auth))
 
-    def execute_germlin_traversal(self, gremlin, bindings='', language="gremlin-groovy", aliases=""):
-        """
-        向CirroGraphServer发送gremlin语句(GET),同步执行
-        :param gremlin: 要发送给CirroGraphServer执行的gremlin语句
-        :param bindings: 可以给gremlin语句中的变量绑定值
-        :param language: 发送语句的语言类型,默认为gremlin-groovy
-        :param aliases: 为存在于图空间的已有变量添加别名
-        :return: CirroGraphResponse
-        """
-        if bindings == '':
-            bindings = {}
-        url = self.host + "/gremlin?gremlin=" + self.graph + ".traversal()." + gremlin
-        if bindings != {}:
-            url = url + "&bindings=" + bindings
-        if language != "gremlin-groovy":
-            url = url + "&language=" + language
-        if aliases != "":
-            url = url + "&aliases=" + aliases
-        
-        return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
-
     def execute_germlin_get(self, gremlin, bindings='', language="gremlin-groovy", aliases=""):
         """
         向CirroGraphServer发送gremlin语句(GET),同步执行
@@ -961,14 +1027,8 @@ class CirroGraphClient(object):
         if bindings == '':
             bindings = {}
         url = self.host + "/gremlin"
-        data = {
-            "gremlin": gremlin,
-            "bindings": bindings,
-            "language": language,
-            "aliases": aliases
-        }
-        
-        return CirroGraphResponse(requests.post(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
+
+        return CirroGraphResponse(requests.post(url, data=json.dumps(gremlin), headers=self.headers,auth=self.auth))
 
     def execute_germlin_post_job(self, gremlin, bindings='', language="gremlin-groovy"):
         """
@@ -1001,14 +1061,336 @@ class CirroGraphClient(object):
         }
         :return: CirroGraphResponse
         """
-        if bindings == '':
-            bindings = {}
         url = self.host + "/gremlin" + "/" + self.graph + "/cypher"
         data = {
             "cypher": cypherql
         }
         
         return CirroGraphResponse(requests.post(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
+    
+    def add_user(self, request):
+        """
+        创建用户   
+        Params:
+            user_name: 用户名称,必填
+            user_password: 用户密码,必填
+            user_phone: 用户手机号
+            user_email: 用户邮箱
+        request:
+            {
+                "user_name": "bowen",
+                "user_password": "123456",
+                "user_phone": "155****9088",
+                "user_email": "123456@xx.com"
+            }
+
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/users"
+        
+        return CirroGraphResponse(requests.post(url, data=json.dumps(request), headers=self.headers,auth=self.auth))
+
+    def delete_user(self, userid):
+        """
+        删除用户   
+        Params:
+            id: 需要删除的用户Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/users/"+userid
+        
+        return CirroGraphResponse(requests.delete(url,headers=self.headers,auth=self.auth))
+
+    def update_user(self,userid,request):
+        """
+        修改用户   
+        Params:
+            id: 需要修改的用户Id
+        request:
+            {
+                "user_name": "bowen",
+                "user_password": "12345678",
+                "user_phone": "12345678,
+                "user_email": "12345678@xx.com"
+            }
+
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/users/"+userid
+        
+        return CirroGraphResponse(requests.put(url, data=json.dumps(request), headers=self.headers,auth=self.auth))
+
+    def get_users(self,limit=''):
+        """
+        查询用户列表   
+        Params:
+            id: 需要删除的用户Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/users"
+
+        if limit != '':
+            url += f'?limit={limit}'
+        
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
+
+    def get_user(self,id):
+        """
+        查询用户列表   
+        Params:
+            id: 需要查询的用户Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/users/"+id        
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
+
+    def get_user_role(self,id):
+        """
+        查询某个用户的角色   
+        Params:
+            id: 需要查询的用户Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/users/"+id+'/role'        
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
+    
+    def add_group(self, request):
+        """
+        用户组会赋予相应的资源权限，用户会被分配不同的用户组，即可拥有不同的资源权限。
+        用户组接口包括：创建用户组，删除用户组，修改用户组，和查询用户组相关信息接口。
+        创建用户组
+        Params:
+            group_name: 用户组名称
+            group_description: 用户组描述
+        request:
+            {
+                "group_name": "all",
+                "group_description": "group can do anything"
+            }
+
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/groups"
+        
+        return CirroGraphResponse(requests.post(url, data=json.dumps(request), headers=self.headers,auth=self.auth))
+
+    def delete_group(self, groupid):
+        """
+        删除用户组
+        Params:
+            id: 需要删除的用户组Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/groups/"+groupid
+        
+        return CirroGraphResponse(requests.delete(url,headers=self.headers,auth=self.auth))
+
+    def update_group(self,groupid,request):
+        """
+        修改用户   
+        Params:
+            id: 需要修改的用户组Id
+        request:
+            {
+                "group_name": "all",
+                "group_description": "group can do anything,just like admin"
+            }
+
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/groups/"+groupid
+        
+        return CirroGraphResponse(requests.put(url, data=json.dumps(request), headers=self.headers,auth=self.auth))
+
+    def get_groups(self,limit=''):
+        """
+        查询用户组列表   
+        Params:
+            limit: 返回结果条数的上限
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/groups"
+
+        if limit != '':
+            url += f'?limit={limit}'
+        
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
+
+    def get_group(self,id):
+        """
+        查询某个用户组   
+        Params:
+            id: 需要查询的用户组Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/groups/"+id        
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
+
+    def add_target(self, request):
+        """
+        资源描述了图数据库中的数据，比如符合某一类条件的顶点，每一个资源包括type、label、properties三个要素，
+        共有18种type、 任意label、任意properties的组合形成的资源，一个资源的内部条件是且关系，多个资源之间的条件是或关系。
+        资源接口包括：资源的创建、删除、修改和查询。
+        创建用户组
+        Params:
+            target_name: 资源名称
+            target_graph: 资源图
+            target_url: 资源地址
+            target_resources: 资源定义(列表)
+            target_resources可以包括多个target_resource，以列表的形式存储。
+                每个target_resource包含：
+                    type：可选值 VERTEX, EDGE等, 可填ALL，则表示可以是顶点或边；
+                    label：可选值，⼀个顶点或边类型的名称，可填*，则表示任意类型；
+                    properties：map类型，可包含多个属性的键值对，必须匹配所有属性值，属性值⽀持填条件范围（age: P.gte(18)），
+                    properties如果为null表示任意属性均可，如果属性名和属性值均为‘*ʼ也表示任意属性均可。
+                如精细资源：“target_resources”: [{“type”:“VERTEX”,“label”:“person”,“properties”:{“city”:“Beijing”,“age”:“P.gte(20)”}}]**
+                资源定义含义：类型是’person’的顶点，且城市属性是’Beijing’，年龄属性大于等于20。
+        request:
+            {
+            "target_name": "all",
+            "target_graph": "cirrograph",
+            "target_url": "139.9.132.125:5000",
+            "target_resources": [
+                {
+                    "type": "ALL"
+                }
+                ]
+            }
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/targets"
+        
+        return CirroGraphResponse(requests.post(url, data=json.dumps(request), headers=self.headers,auth=self.auth))
+
+    def delete_target(self, targetid):
+        """
+        删除资源
+        Params:
+            id: 需要删除的资源Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/targets/"+targetid
+        
+        return CirroGraphResponse(requests.delete(url,headers=self.headers,auth=self.auth))
+
+    def update_target(self,targetid,request):
+        """
+        修改资源   
+        Params:
+            id: 需要修改的资源Id
+        request:
+            {
+                "target_name": "all",
+                "target_graph": "cirrograph",
+                "target_url": "139.9.132.125:5000",
+                "target_resources": [
+                    {
+                        "type": "NONE"
+                    }
+                ]
+            }
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/targets/"+targetid
+        
+        return CirroGraphResponse(requests.put(url, data=json.dumps(request), headers=self.headers,auth=self.auth))
+
+    def get_targets(self,limit=''):
+        """
+        查询资源列表   
+        Params:
+            limit: 返回结果条数的上限
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/targets"
+
+        if limit != '':
+            url += f'?limit={limit}'
+        
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
+
+    def get_target(self,id):
+        """
+        查询某个资源   
+        Params:
+            id: 需要查询的资源Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/targets/"+id        
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
+
+    def add_belong(self, request):
+        """
+        关联用户和用户组的关系，一个用户可以关联一个或者多个用户组。
+        用户组拥有相关资源的权限，不同用户组的资源权限可以理解为不同的角色。即给用户关联角色。
+        关联角色接口包括：用户关联角色的创建、删除、修改和查询。
+        创建用户的关联角色
+        Params:
+            user: 用户 Id
+            group: 用户组 Id
+            belong_description: 描述
+        request:
+            {
+                "user": "-63:bowen",
+                "group": "-69:all"
+            }
+
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/belongs"
+        
+        return CirroGraphResponse(requests.post(url, data=json.dumps(request), headers=self.headers,auth=self.auth))
+
+    def delete_belong(self, belongid):
+        """
+        删除关联角色
+        Params:
+            id: 需要删除的关联角色Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/belongs/"+belongid
+        
+        return CirroGraphResponse(requests.delete(url,headers=self.headers,auth=self.auth))
+
+    def update_belong(self,belongid,request):
+        """
+        关联角色只能修改描述，不能修改 user 和 group 属性，如果需要修改关联角色，需要删除原来关联关系，新增关联角色。
+        Params:
+            id: 需要修改的关联角色Id
+        request:
+            {
+                "belong_description": "update test"
+            }
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/belongs/"+belongid
+        
+        return CirroGraphResponse(requests.put(url, data=json.dumps(request), headers=self.headers,auth=self.auth))
+
+    def get_targets(self,limit=''):
+        """
+        查询资源列表   
+        Params:
+            limit: 返回结果条数的上限
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/targets"
+
+        if limit != '':
+            url += f'?limit={limit}'
+        
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
+
+    def get_target(self,id):
+        """
+        查询某个资源   
+        Params:
+            id: 需要查询的资源Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/targets/"+id        
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
+
 
 class CirroGraphTraverser():
     """
@@ -1030,7 +1412,7 @@ class CirroGraphTraverser():
         else:
             self.headers = headers
     
-    def kout_get(self, source,max_depth,direction="BOTH",label="",nearest=True,max_degree=10000,capacity=10000000,limit=10000000):
+    def kout_get(self, source,max_depth,direction="",label="",nearest="",max_degree="",capacity="",limit=""):
         """
         根据起始顶点、方向、边的类型(可选)和深度depth,查找从起始顶点出发恰好depth步可达的顶点
         Params:
@@ -1060,13 +1442,13 @@ class CirroGraphTraverser():
         if label != "":
             para = para + "&label=" + label
         if nearest != "":
-            para = para + "&nearest=" + label
+            para = para + "&nearest=" + nearest
         if max_degree != "":
-            para = para + "&max_degree=" + label
+            para = para + "&max_degree=" + max_degree
         if capacity != "":
-            para = para + "&capacity=" + label
+            para = para + "&capacity=" + capacity
         if limit != "":
-            para = para + "&limit=" + label    
+            para = para + "&limit=" + limit    
 
         url = url + para[1:]
         
@@ -1074,7 +1456,26 @@ class CirroGraphTraverser():
 
     def kout_post(self,request):
         '''
-        eg:
+        根据起始顶点、步骤（包括方向、边类型和过滤属性）和深度depth，查找从起始顶点出发恰好depth步可达的顶点。
+        Params:
+            source：起始顶点id，必填项
+            从起始点出发的Step，必填项，结构如下：
+                direction：表示边的方向（OUT,IN,BOTH），默认是BOTH
+                labels：边的类型列表
+                properties：通过属性的值过滤边
+                max_degree：查询过程中，单个顶点遍历的最大邻接边数目，默认为 10000 (注: 0.12版之前 step 内仅支持 degree 作为参数名, 0.12开始统一使用 max_degree, 并向下兼容 degree 写法)
+                skip_degree：用于设置查询过程中舍弃超级顶点的最小边数，即当某个顶点的邻接边数目大于 skip_degree 时，完全舍弃该顶点。选填项，如果开启时，需满足 skip_degree >= max_degree 约束，默认为0 (不启用)，表示不跳过任何点 (注意: 开启此配置后，遍历时会尝试访问一个顶点的 skip_degree 条边，而不仅仅是 max_degree 条边，这样有额外的遍历开销，对查询性能影响可能有较大影响，请确认理解后再开启)
+            max_depth：步数，必填项
+            nearest：nearest为true时，代表起始顶点到达结果顶点的最短路径长度为depth，不存在更短的路径；nearest为false时，代表起始顶点到结果顶点有一条长度为depth的路径（未必最短且可以有环），选填项，默认为true
+            count_only：Boolean值，true表示只统计结果的数目，不返回具体结果；false表示返回具体的结果，默认为false
+            with_path：true表示返回起始点到每个邻居的最短路径，false表示不返回起始点到每个邻居的最短路径，选填项，默认为false
+            with_vertex，选填项，默认为false：
+                true表示返回结果包含完整的顶点信息（路径中的全部顶点）
+                    with_path为true时，返回所有路径中的顶点的完整信息
+                    with_path为false时，返回所有邻居的完整信息
+                false时表示只返回顶点id
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            limit：返回的顶点的最大数目，选填项，默认为10000000
         request = {
             "source": 1,
             "step": {
@@ -1092,18 +1493,22 @@ class CirroGraphTraverser():
             "with_vertex": True,
             "with_path": True
         }
+        return: CirroGraphResponse
         '''
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/kout"
         return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
 
-    def kneighbor_get(self, source,  depth, direction="BOTH",label="",max_degree="10000",limit="10000000"):
+    def kneighbor_get(self, source, max_depth, direction="",label="",max_degree="",limit=""):
         """
         根据起始顶点、方向、边的类型(可选)和深度depth,查找包括起始顶点在内、depth步之内可达的所有顶点
-        :param source: 起始顶点id
-        :param direction: 起始顶点向外发散的方向(OUT,IN,BOTH)
-        :param depth: 步数
-        :param label: 边的类型
-        :return: CirroGraphResponse
+        Params:
+            source: 起始顶点id，必填项
+            direction：起始顶点向外发散的方向（OUT,IN,BOTH），选填项，默认是BOTH
+            max_depth：步数，必填项
+            label：边的类型，选填项，默认代表所有edge label
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+            limit：返回的顶点的最大数目，也即遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/kneighbor?"
         para = ""
@@ -1112,25 +1517,73 @@ class CirroGraphTraverser():
         else:
             para = f'{para}&source="{source}"'
         if direction != "":
-            para = para + "&direction=" + direction
-        if depth != "":
-            para = para + "&max_depth=" + str(depth)
+            para = f'{para}&direction={direction}'
+        if max_depth != "":
+            para = f'{para}&max_depth={max_depth}'
         if label != "":
-            para = para + "&label=" + label
+            para = f'{para}&label={label}'
         if max_degree != "":
-            para = para + "&max_degree=" + max_degree
+            para = f'{para}&max_degree={max_degree}'
         if limit != "":
-            para = para + "&limit=" + limit
+            para = f'{para}&limit={limit}'
 
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))    
 
     def kneighbor_post(self,request):
+        '''
+        根据起始顶点、步骤（包括方向、边类型和过滤属性）和深度depth，查找从起始顶点出发depth步内可达的所有顶点。
+        Params:
+            source：起始顶点id，必填项
+            从起始点出发的Step，必填项，结构如下：
+                direction：表示边的方向（OUT,IN,BOTH），默认是BOTH
+                labels：边的类型列表
+                properties：通过属性的值过滤边
+                max_degree：查询过程中，单个顶点遍历的最大邻接边数目，默认为 10000 (注: 0.12版之前 step 内仅支持 degree 作为参数名, 0.12开始统一使用 max_degree, 并向下兼容 degree 写法)
+                skip_degree：用于设置查询过程中舍弃超级顶点的最小边数，即当某个顶点的邻接边数目大于 skip_degree 时，完全舍弃该顶点。选填项，如果开启时，需满足 skip_degree >= max_degree 约束，默认为0 (不启用)，表示不跳过任何点 (注意: 开启此配置后，遍历时会尝试访问一个顶点的 skip_degree 条边，而不仅仅是 max_degree 条边，这样有额外的遍历开销，对查询性能影响可能有较大影响，请确认理解后再开启)
+            max_depth：步数，必填项
+            count_only：Boolean值，true表示只统计结果的数目，不返回具体结果；false表示返回具体的结果，默认为false
+            with_path：true表示返回起始点到每个邻居的最短路径，false表示不返回起始点到每个邻居的最短路径，选填项，默认为false
+            with_vertex，选填项，默认为false：
+                true表示返回结果包含完整的顶点信息（路径中的全部顶点）
+                    with_path为true时，返回所有路径中的顶点的完整信息
+                    with_path为false时，返回所有邻居的完整信息
+                false时表示只返回顶点id
+            limit：返回的顶点的最大数目，选填项，默认为10000000
+        request:{
+            "source": "1:marko",
+            "step": {
+                "direction": "BOTH",
+                "labels": ["knows", "created"],
+                "properties": {
+                "weight": "P.gt(0.1)"
+                },
+                "max_degree": 10000,
+                "skip_degree": 100000
+            },
+            "max_depth": 3,
+            "limit": 10000,
+            "with_vertex": true,
+            "with_path": true
+        }
+        return: CirroGraphResponse
+        '''
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/kneighbor"
         return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
 
-    def sameneighbors(self,vertex,other,direction="BOTH",label="",max_degree="10000",limit="10000000"):
+    def sameneighbors(self,vertex,other,direction="",label="",max_degree="",limit=""):
+        '''
+        查询两个点的共同邻居
+        Params:
+            vertex：一个顶点id，必填项
+            other：另一个顶点id，必填项
+            direction：顶点向外发散的方向（OUT,IN,BOTH），选填项，默认是BOTH
+            label：边的类型，选填项，默认代表所有edge label
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+            limit：返回的共同邻居的最大数目，选填项，默认为10000000
+        return: CirroGraphResponse
+        '''
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/sameneighbors?"
         para = ""
         if type(vertex) is int:
@@ -1154,7 +1607,17 @@ class CirroGraphTraverser():
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
     
-    def jaccardsimilarity_get(self,vertex,other,direction="BOTH",label="",max_degree="10000",limit="10000000"):
+    def jaccardsimilarity_get(self,vertex,other,direction="",label="",max_degree="",limit=""):
+        '''
+        计算两个顶点的jaccard similarity（两个顶点邻居的交集比上两个顶点邻居的并集）
+        Params:
+            vertex：一个顶点id，必填项
+            other：另一个顶点id，必填项
+            direction：顶点向外发散的方向（OUT,IN,BOTH），选填项，默认是BOTH
+            label：边的类型，选填项，默认代表所有edge label
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+        return: CirroGraphResponse
+        '''
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/jaccardsimilarity?"
         para = ""
         if type(vertex) is int:
@@ -1166,28 +1629,49 @@ class CirroGraphTraverser():
         else:
             para = f'{para}&other="{other}"'
         if direction != "":
-            para = para + "&direction=" + direction
+            para = f'{para}&direction="{direction}"'
         if label != "":
-            para = para + "&label=" + label
+            para = f'{para}&label="{label}"'
         if max_degree != "":
-            para = para + "&max_degree=" + max_degree   
+            para = f'{para}&max_degree="{max_degree}"'
+        if limit != "":
+            para = f'{para}&limit="{limit}"'
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
     
     def jaccardsimilarity_post(self,request):
+        '''
+        计算与指定顶点的jaccard similarity最大的N个点
+        jaccard similarity的计算方式为：两个顶点邻居的交集比上两个顶点邻居的并集
+        Params:
+            vertex：一个顶点id，必填项
+            从起始点出发的Step，必填项，结构如下：
+                direction：表示边的方向（OUT,IN,BOTH），默认是BOTH
+                labels：边的类型列表
+                properties：通过属性的值过滤边
+                max_degree：查询过程中，单个顶点遍历的最大邻接边数目，默认为 10000 (注: 0.12版之前 step 内仅支持 degree 作为参数名, 0.12开始统一使用 max_degree, 并向下兼容 degree 写法)
+                skip_degree：用于设置查询过程中舍弃超级顶点的最小边数，即当某个顶点的邻接边数目大于 skip_degree 时，完全舍弃该顶点。选填项，如果开启时，需满足 skip_degree >= max_degree 约束，默认为0 (不启用)，表示不跳过任何点 (注意: 开启此配置后，遍历时会尝试访问一个顶点的 skip_degree 条边，而不仅仅是 max_degree 条边，这样有额外的遍历开销，对查询性能影响可能有较大影响，请确认理解后再开启)
+            top：返回一个起点的jaccard similarity中最大的top个，选填项，默认为100
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+        return: CirroGraphResponse
+        '''
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/jaccardsimilarity"
         return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
     
-    def shortestpath(self, source, target,max_depth,direction="BOTH",label="",max_degree=10000,skip_degree=0,capacity=10000000):
+    def shortestpath(self, source, target,max_depth,direction="",label="",max_degree="",skip_degree="",capacity=""):
         """
         根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        Params:
+            source：起始顶点id，必填项
+            target：目的顶点id，必填项
+            direction：起始顶点向外发散的方向（OUT,IN,BOTH），选填项，默认是BOTH
+            max_depth：最大步数，必填项
+            label：边的类型，选填项，默认代表所有edge label
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+            skip_degree：用于设置查询过程中舍弃超级顶点的最小边数，即当某个顶点的邻接边数目大于 skip_degree 时，完全舍弃该顶点。选填项，如果开启时，需满足 skip_degree >= max_degree 约束，默认为0 (不启用)，表示不跳过任何点 (注意: 开启此配置后，遍历时会尝试访问一个顶点的 skip_degree 条边，而不仅仅是 max_degree 条边，这样有额外的遍历开销，对查询性能影响可能有较大影响，请确认理解后再开启)
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/shortestpath?"
         para = ""
@@ -1203,24 +1687,32 @@ class CirroGraphTraverser():
             para = f'{para}&max_depth={max_depth}'
         if label != "":
             para = f'{para}&label={label}'
-        para = f'{para}&direction={direction}'
-        para = f'{para}&max_degree={max_degree}'
-        para = f'{para}&skip_degree={skip_degree}'
-        para = f'{para}&capacity={capacity}'
+        if direction != "":
+            para = f'{para}&direction={direction}'
+        if max_degree != "":
+            para = f'{para}&max_degree={max_degree}'
+        if skip_degree != "":
+            para = f'{para}&skip_degree={skip_degree}'
+        if capacity != "":
+            para = f'{para}&capacity={capacity}'
 
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
     
-    def allshortestpaths(self, source, target,max_depth,direction="BOTH",label="",max_degree=10000,skip_degree=0,capacity=10000000):
+    def allshortestpaths(self, source, target,max_depth,direction="",label="",max_degree="",skip_degree="",capacity=""):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        根据起始顶点、目的顶点、方向、边的类型（可选）和最大深度，查找两点间所有的最短路径
+        Params:
+            source：起始顶点id，必填项
+            target：目的顶点id，必填项
+            direction：起始顶点向外发散的方向（OUT,IN,BOTH），选填项，默认是BOTH
+            max_depth：最大步数，必填项
+            label：边的类型，选填项，默认代表所有edge label
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+            skip_degree：用于设置查询过程中舍弃超级顶点的最小边数，即当某个顶点的邻接边数目大于 skip_degree 时，完全舍弃该顶点。选填项，如果开启时，需满足 skip_degree >= max_degree 约束，默认为0 (不启用)，表示不跳过任何点 (注意: 开启此配置后，遍历时会尝试访问一个顶点的 skip_degree 条边，而不仅仅是 max_degree 条边，这样有额外的遍历开销，对查询性能影响可能有较大影响，请确认理解后再开启)
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/allshortestpaths?"
         para = ""
@@ -1236,24 +1728,33 @@ class CirroGraphTraverser():
             para = f'{para}&max_depth={max_depth}'
         if label != "":
             para = f'{para}&label={label}'
-        para = f'{para}&direction={direction}'
-        para = f'{para}&max_degree={max_degree}'
-        para = f'{para}&skip_degree={skip_degree}'
-        para = f'{para}&capacity={capacity}'
+        if direction != "":
+            para = f'{para}&direction={direction}' 
+        if max_degree != "":
+            para = f'{para}&max_degree={max_degree}'
+        if skip_degree != "":
+            para = f'{para}&skip_degree={skip_degree}'
+        if capacity != "":
+            para = f'{para}&capacity={capacity}'
 
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
     
-    def weightedshortestpath(self, source, target,weight,direction="BOTH",label="",max_degree=10000,skip_degree=0,capacity=10000000,with_vertex=False):
+    def weightedshortestpath(self, source, target,weight,direction="",label="",max_degree="",skip_degree="",capacity="",with_vertex=""):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        根据起始顶点、目的顶点、方向、边的类型（可选）和最大深度，查找一条带权最短路径
+        Params:
+            source：起始顶点id，必填项
+            target：目的顶点id，必填项
+            direction：起始顶点向外发散的方向（OUT,IN,BOTH），选填项，默认是BOTH
+            label：边的类型，选填项，默认代表所有edge label
+            weight：边的权重属性，必填项，必须是数字类型的属性
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+            skip_degree：用于设置查询过程中舍弃超级顶点的最小边数，即当某个顶点的邻接边数目大于 skip_degree 时，完全舍弃该顶点。选填项，如果开启时，需满足 skip_degree >= max_degree 约束，默认为0 (不启用)，表示不跳过任何点 (注意: 开启此配置后，遍历时会尝试访问一个顶点的 skip_degree 条边，而不仅仅是 max_degree 条边，这样有额外的遍历开销，对查询性能影响可能有较大影响，请确认理解后再开启)
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            with_vertex：true表示返回结果包含完整的顶点信息（路径中的全部顶点），false时表示只返回顶点id，选填项，默认为false
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/weightedshortestpath?"
         para = ""
@@ -1269,25 +1770,35 @@ class CirroGraphTraverser():
             para = f'{para}&weight={weight}'
         if label != "":
             para = f'{para}&label={label}'
-        para = f'{para}&direction={direction}'
-        para = f'{para}&max_degree={max_degree}'
-        para = f'{para}&skip_degree={skip_degree}'
-        para = f'{para}&capacity={capacity}'
-        para = f'{para}&with_vertex={with_vertex}'
+        if direction != "":
+            para = f'{para}&direction={direction}'
+        if max_degree != "":
+            para = f'{para}&max_degree={max_degree}'
+        if skip_degree != "":
+            para = f'{para}&skip_degree={skip_degree}'
+        if capacity != "":
+            para = f'{para}&capacity={capacity}'
+        if with_vertex != "":
+            para = f'{para}&with_vertex={with_vertex}'
 
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def singlesourceshortestpath(self, source,weight,direction="BOTH",label="",max_degree=10000,skip_degree=0,capacity=10000000,limit=10,with_vertex=False):
+    def singlesourceshortestpath(self, source,weight="",direction="",label="",max_degree="",skip_degree="",capacity="",limit="",with_vertex=""):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        从一个顶点出发，查找该点到图中其他顶点的最短路径（可选是否带权重）
+        Params：
+            source：起始顶点id，必填项
+            direction：起始顶点向外发散的方向（OUT,IN,BOTH），选填项，默认是BOTH
+            label：边的类型，选填项，默认代表所有edge label
+            weight：边的权重属性，选填项，必须是数字类型的属性，如果不填或者虽然填了但是边没有该属性，则权重为1.0
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+            skip_degree：用于设置查询过程中舍弃超级顶点的最小边数，即当某个顶点的邻接边数目大于 skip_degree 时，完全舍弃该顶点。选填项，如果开启时，需满足 skip_degree >= max_degree 约束，默认为0 (不启用)，表示不跳过任何点 (注意: 开启此配置后，遍历时会尝试访问一个顶点的 skip_degree 条边，而不仅仅是 max_degree 条边，这样有额外的遍历开销，对查询性能影响可能有较大影响，请确认理解后再开启)
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            limit：查询到的目标顶点个数，也是返回的最短路径的条数，选填项，默认为10
+            with_vertex：true表示返回结果包含完整的顶点信息（路径中的全部顶点），false时表示只返回顶点id，选填项，默认为false
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/singlesourceshortestpath?"
         para = ""
@@ -1299,30 +1810,62 @@ class CirroGraphTraverser():
             para = f'{para}&weight={weight}'
         if label != "":
             para = f'{para}&label={label}'
-        para = f'{para}&direction={direction}'
-        para = f'{para}&max_degree={max_degree}'
-        para = f'{para}&skip_degree={skip_degree}'
-        para = f'{para}&capacity={capacity}'
-        para = f'{para}&limit={limit}'
-        para = f'{para}&with_vertex={with_vertex}'
+        if direction != "":
+            para = f'{para}&direction={direction}'
+        if max_degree != "":
+            para = f'{para}&max_degree={max_degree}'
+        if skip_degree != "":
+            para = f'{para}&skip_degree={skip_degree}'
+        if capacity != "":
+            para = f'{para}&capacity={capacity}'
+        if limit != "":
+            para = f'{para}&limit={limit}'
+        if with_vertex != "":
+            para = f'{para}&with_vertex={with_vertex}'
 
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
     def multinodeshortestpath(self,request):
+        '''
+        查找指定顶点集两两之间的最短路径
+        Params:
+            vertices：定义起始顶点，必填项，指定方式包括：
+                ids：通过顶点id列表提供起始顶点
+                label和properties：如果没有指定ids，则使用label和properties的联合条件查询起始顶点
+                    label：顶点的类型
+                    properties：通过属性的值查询起始顶点
+
+                    注意：properties中的属性值可以是列表，表示只要key对应的value在列表中就可以
+
+            step：表示从起始顶点到终止顶点走过的路径，必填项，Step的结构如下：
+                direction：表示边的方向（OUT,IN,BOTH），默认是BOTH
+                labels：边的类型列表
+                properties：通过属性的值过滤边
+                max_degree：查询过程中，单个顶点遍历的最大邻接边数目，默认为 10000 (注: 0.12版之前 step 内仅支持 degree 作为参数名, 0.12开始统一使用 max_degree, 并向下兼容 degree 写法)
+                skip_degree：用于设置查询过程中舍弃超级顶点的最小边数，即当某个顶点的邻接边数目大于 skip_degree 时，完全舍弃该顶点。选填项，如果开启时，需满足 skip_degree >= max_degree 约束，默认为0 (不启用)，表示不跳过任何点 (注意: 开启此配置后，遍历时会尝试访问一个顶点的 skip_degree 条边，而不仅仅是 max_degree 条边，这样有额外的遍历开销，对查询性能影响可能有较大影响，请确认理解后再开启)
+            max_depth：步数，必填项
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            with_vertex：true表示返回结果包含完整的顶点信息（路径中的全部顶点），false时表示只返回顶点id，选填项，默认为false
+        return: CirroGraphResponse
+        '''
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/multinodeshortestpath"
         return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
     
-    def paths_get(self, source, target,max_depth,direction="BOTH",label="",max_degree=10000,capacity=10000000,limit=10):
+    def paths_get(self, source, target,max_depth,direction="",label="",max_degree="",capacity="",limit=""):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        根据起始顶点、目的顶点、方向、边的类型（可选）和最大深度等条件查找所有路径
+        Params:
+            source：起始顶点id，必填项
+            target：目的顶点id，必填项
+            direction：起始顶点向外发散的方向（OUT,IN,BOTH），选填项，默认是BOTH
+            label：边的类型，选填项，默认代表所有edge label
+            max_depth：步数，必填项
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            limit：返回的路径的最大数目，选填项，默认为10
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/paths?"
         para = ""
@@ -1338,38 +1881,243 @@ class CirroGraphTraverser():
             para = f'{para}&max_depth={max_depth}'
         if label != "":
             para = f'{para}&label={label}'
-        para = f'{para}&direction={direction}'
-        para = f'{para}&max_degree={max_degree}'
-        para = f'{para}&capacity={capacity}'
-        para = f'{para}&limit={limit}'
+        if direction != "":
+            para = f'{para}&direction={direction}'
+        if max_degree != "":
+            para = f'{para}&max_degree={max_degree}'
+        if capacity != "":
+            para = f'{para}&capacity={capacity}'
+        if limit != "":
+            para = f'{para}&limit={limit}'
 
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
     def paths_post(self,request):
+        '''
+        根据起始顶点、目的顶点、步骤（step）和最大深度等条件查找所有路径
+        Params:
+            sources：定义起始顶点，必填项，指定方式包括：
+                ids：通过顶点id列表提供起始顶点
+                label和properties：如果没有指定ids，则使用label和properties的联合条件查询起始顶点
+                    label：顶点的类型
+                    properties：通过属性的值查询起始顶点
+
+                    注意：properties中的属性值可以是列表，表示只要key对应的value在列表中就可以
+
+            targets：定义终止顶点，必填项，指定方式包括：
+                ids：通过顶点id列表提供终止顶点
+                label和properties：如果没有指定ids，则使用label和properties的联合条件查询终止顶点
+                    label：顶点的类型
+                    properties：通过属性的值查询终止顶点
+
+                    注意：properties中的属性值可以是列表，表示只要key对应的value在列表中就可以
+
+            step：表示从起始顶点到终止顶点走过的路径，必填项，Step的结构如下：
+                direction：表示边的方向（OUT,IN,BOTH），默认是BOTH
+                labels：边的类型列表
+                properties：通过属性的值过滤边
+                max_degree：查询过程中，单个顶点遍历的最大邻接边数目，默认为 10000 (注: 0.12版之前 step 内仅支持 degree 作为参数名, 0.12开始统一使用 max_degree, 并向下兼容 degree 写法)
+                skip_degree：用于设置查询过程中舍弃超级顶点的最小边数，即当某个顶点的邻接边数目大于 skip_degree 时，完全舍弃该顶点。选填项，如果开启时，需满足 skip_degree >= max_degree 约束，默认为0 (不启用)，表示不跳过任何点 (注意: 开启此配置后，遍历时会尝试访问一个顶点的 skip_degree 条边，而不仅仅是 max_degree 条边，这样有额外的遍历开销，对查询性能影响可能有较大影响，请确认理解后再开启)
+            max_depth：步数，必填项
+            nearest：nearest为true时，代表起始顶点到达结果顶点的最短路径长度为depth，不存在更短的路径；nearest为false时，代表起始顶点到结果顶点有一条长度为depth的路径（未必最短且可以有环），选填项，默认为true
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            limit：返回的路径的最大数目，选填项，默认为10
+            with_vertex：true表示返回结果包含完整的顶点信息（路径中的全部顶点），false时表示只返回顶点id，选填项，默认为false
+        request:{
+            "sources": {
+            "ids": ["1:marko"]
+            },
+            "targets": {
+            "ids": ["1:peter"]
+            },
+            "step": {
+            "direction": "BOTH",
+            "properties": {
+                "weight": "P.gt(0.01)"
+            }
+            },
+            "max_depth": 10,
+            "capacity": 100000000,
+            "limit": 10000000,
+            "with_vertex": false
+        }
+        return: CirroGraphResponse
+        '''
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/paths"
         return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
     
     def customizedpaths(self,request):
+        '''
+        根据一批起始顶点、边规则（包括方向、边的类型和属性过滤）和最大深度等条件查找符合条件的所有的路径
+        Params：
+            sources：定义起始顶点，必填项，指定方式包括：
+                ids：通过顶点id列表提供起始顶点
+                label和properties：如果没有指定ids，则使用label和properties的联合条件查询起始顶点
+                    label：顶点的类型
+                    properties：通过属性的值查询起始顶点
+
+                    注意：properties中的属性值可以是列表，表示只要key对应的value在列表中就可以
+
+            steps：表示从起始顶点走过的路径规则，是一组Step的列表。必填项。每个Step的结构如下：
+                direction：表示边的方向（OUT,IN,BOTH），默认是BOTH
+                labels：边的类型列表
+                properties：通过属性的值过滤边
+                weight_by：根据指定的属性计算边的权重，sort_by不为NONE时有效，与default_weight互斥
+                default_weight：当边没有属性作为权重计算值时，采取的默认权重，sort_by不为NONE时有效，与weight_by互斥
+                max_degree：查询过程中，单个顶点遍历的最大邻接边数目，默认为 10000 (注: 0.12版之前 step 内仅支持 degree 作为参数名, 0.12开始统一使用 max_degree, 并向下兼容 degree 写法)
+                sample：当需要对某个step的符合条件的边进行采样时设置，-1表示不采样，默认为采样100
+            sort_by：根据路径的权重排序，选填项，默认为NONE：
+                NONE表示不排序，默认值
+                INCR表示按照路径权重的升序排序
+                DECR表示按照路径权重的降序排序
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            limit：返回的路径的最大数目，选填项，默认为10
+            with_vertex：true表示返回结果包含完整的顶点信息（路径中的全部顶点），false时表示只返回顶点id，选填项，默认为false
+        request:{
+            "sources":{
+                "ids":[
+
+                ],
+                "label":"person",
+                "properties":{
+                    "name":"marko"
+                }
+            },
+            "steps":[
+                {
+                    "direction":"OUT",
+                    "labels":[
+                        "knows"
+                    ],
+                    "weight_by":"weight",
+                    "max_degree":-1
+                },
+                {
+                    "direction":"OUT",
+                    "labels":[
+                        "created"
+                    ],
+                    "default_weight":8,
+                    "max_degree":-1,
+                    "sample":1
+                }
+            ],
+            "sort_by":"INCR",
+            "with_vertex":true,
+            "capacity":-1,
+            "limit":-1
+        }
+        return: CirroGraphResponse
+        '''
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/customizedpaths"
         return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
 
     def templatepaths(self,request):
+        '''
+        根据一批起始顶点、边规则（包括方向、边的类型和属性过滤）和最大深度等条件查找符合条件的所有的路径
+        Params:
+            sources：定义起始顶点，必填项，指定方式包括：
+                ids：通过顶点id列表提供起始顶点
+                label和properties：如果没有指定ids，则使用label和properties的联合条件查询起始顶点
+                    label：顶点的类型
+                    properties：通过属性的值查询起始顶点
+
+                    注意：properties中的属性值可以是列表，表示只要key对应的value在列表中就可以
+
+            targets：定义终止顶点，必填项，指定方式包括：
+                ids：通过顶点id列表提供终止顶点
+                label和properties：如果没有指定ids，则使用label和properties的联合条件查询终止顶点
+                    label：顶点的类型
+                    properties：通过属性的值查询终止顶点
+
+                    注意：properties中的属性值可以是列表，表示只要key对应的value在列表中就可以
+
+            steps：表示从起始顶点走过的路径规则，是一组Step的列表。必填项。每个Step的结构如下：
+                direction：表示边的方向（OUT,IN,BOTH），默认是BOTH
+                labels：边的类型列表
+                properties：通过属性的值过滤边
+                max_times：当前step可以重复的次数，当为N时，表示从起始顶点可以经过当前step 1-N 次
+                max_degree：查询过程中，单个顶点遍历的最大邻接边数目，默认为 10000 (注: 0.12版之前 step 内仅支持 degree 作为参数名, 0.12开始统一使用 max_degree, 并向下兼容 degree 写法)
+                skip_degree：用于设置查询过程中舍弃超级顶点的最小边数，即当某个顶点的邻接边数目大于 skip_degree 时，完全舍弃该顶点。选填项，如果开启时，需满足 skip_degree >= max_degree 约束，默认为0 (不启用)，表示不跳过任何点 (注意: 开启此配置后，遍历时会尝试访问一个顶点的 skip_degree 条边，而不仅仅是 max_degree 条边，这样有额外的遍历开销，对查询性能影响可能有较大影响，请确认理解后再开启)
+            with_ring：Boolean值，true表示包含环路；false表示不包含环路，默认为false
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            limit：返回的路径的最大数目，选填项，默认为10
+            with_vertex：true表示返回结果包含完整的顶点信息（路径中的全部顶点），false时表示只返回顶点id，选填项，默认为false
+        request:{
+            "sources": {
+                    "ids": [],
+                    "label": "person",
+                    "properties": {
+                        "name": "vadas"
+                    }
+                    },
+                    "targets": {
+                    "ids": [],
+                    "label": "software",
+                    "properties": {
+                        "name": "ripple"
+                    }
+                    },
+                    "steps": [
+                    {
+                        "direction": "IN",
+                        "labels": ["knows"],
+                        "properties": {
+                        },
+                        "max_degree": 10000,
+                        "skip_degree": 100000
+                    },
+                    {
+                        "direction": "OUT",
+                        "labels": ["created"],
+                        "properties": {
+                        },
+                        "max_degree": 10000,
+                        "skip_degree": 100000
+                    },
+                    {
+                        "direction": "IN",
+                        "labels": ["created"],
+                        "properties": {
+                        },
+                        "max_degree": 10000,
+                        "skip_degree": 100000
+                    },
+                    {
+                        "direction": "OUT",
+                        "labels": ["created"],
+                        "properties": {
+                        },
+                        "max_degree": 10000,
+                        "skip_degree": 100000
+                    }
+                    ],
+                    "capacity": 10000,
+                    "limit": 10,
+                    "with_vertex": true
+                }
+        return: CirroGraphResponse
+        '''
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/templatepaths"
         return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
 
-    def crosspoints(self, source, target,max_depth,direction="BOTH",label="",max_degree=10000,capacity=10000000,limit=10):
+    def crosspoints(self, source, target,max_depth,direction="",label="",max_degree="",capacity="",limit=""):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        根据起始顶点、目的顶点、方向、边的类型（可选）和最大深度等条件查找相交点
+        Params:
+            source：起始顶点id，必填项
+            target：目的顶点id，必填项
+            direction：起始顶点到目的顶点的方向, 目的点到起始点是反方向，BOTH时不考虑方向（OUT,IN,BOTH），选填项，默认是BOTH
+            label：边的类型，选填项，默认代表所有edge label
+            max_depth：步数，必填项
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            limit：返回的交点的最大数目，选填项，默认为10
+        return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + self.graph + "/traversers/paths?"
+        url = self.host + "/graphs" + "/" + self.graph + "/traversers/crosspoints?"
         para = ""
         if type(source) is int:
             para = f'{para}&source={source}'
@@ -1383,28 +2131,94 @@ class CirroGraphTraverser():
             para = f'{para}&max_depth={max_depth}'
         if label != "":
             para = f'{para}&label={label}'
-        para = f'{para}&direction={direction}'
-        para = f'{para}&max_degree={max_degree}'
-        para = f'{para}&capacity={capacity}'
-        para = f'{para}&limit={limit}'
+        if direction != "":
+            para = f'{para}&direction={direction}'
+        if max_degree != "":
+            para = f'{para}&max_degree={max_degree}'
+        if capacity != "":
+            para = f'{para}&capacity={capacity}'
+        if limit != "":
+            para = f'{para}&limit={limit}'
 
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
     def customizedcrosspoints(self,request):
+        '''
+        根据一批起始顶点、多种边规则（包括方向、边的类型和属性过滤）和最大深度等条件查找符合条件的所有的路径终点的交集
+        Params:
+            sources：定义起始顶点，必填项，指定方式包括：
+                ids：通过顶点id列表提供起始顶点
+                label和properties：如果没有指定ids，则使用label和properties的联合条件查询起始顶点
+                    label：顶点的类型
+                    properties：通过属性的值查询起始顶点
+
+                    注意：properties中的属性值可以是列表，表示只要key对应的value在列表中就可以
+
+            path_patterns：表示从起始顶点走过的路径规则，是一组规则的列表。必填项。每个规则是一个PathPattern
+                每个PathPattern是一组Step列表，每个Step结构如下：
+                    direction：表示边的方向（OUT,IN,BOTH），默认是BOTH
+                    labels：边的类型列表
+                    properties：通过属性的值过滤边
+                    max_degree：查询过程中，单个顶点遍历的最大邻接边数目，默认为 10000 (注: 0.12版之前 step 内仅支持 degree 作为参数名, 0.12开始统一使用 max_degree, 并向下兼容 degree 写法)
+                    skip_degree：用于设置查询过程中舍弃超级顶点的最小边数，即当某个顶点的邻接边数目大于 skip_degree 时，完全舍弃该顶点。选填项，如果开启时，需满足 skip_degree >= max_degree 约束，默认为0 (不启用)，表示不跳过任何点 (注意: 开启此配置后，遍历时会尝试访问一个顶点的 skip_degree 条边，而不仅仅是 max_degree 条边，这样有额外的遍历开销，对查询性能影响可能有较大影响，请确认理解后再开启)
+
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+
+            limit：返回的路径的最大数目，选填项，默认为10
+
+            with_path：true表示返回交点所在的路径，false表示不返回交点所在的路径，选填项，默认为false
+
+            with_vertex，选填项，默认为false：
+                true表示返回结果包含完整的顶点信息（路径中的全部顶点）
+                    with_path为true时，返回所有路径中的顶点的完整信息
+                    with_path为false时，返回所有交点的完整信息
+                false时表示只返回顶点id
+        request:{
+            "sources":{
+                "ids":[
+                    "2:lop",
+                    "2:ripple"
+                ]
+            },
+            "path_patterns":[
+                {
+                    "steps":[
+                        {
+                            "direction":"IN",
+                            "labels":[
+                                "created"
+                            ],
+                            "max_degree":-1
+                        }
+                    ]
+                }
+            ],
+            "with_path":true,
+            "with_vertex":true,
+            "capacity":-1,
+            "limit":-1
+        }
+
+        return: CirroGraphResponse
+        '''
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/customizedcrosspoints"
         return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
     
-    def rings(self, source,max_depth,direction="BOTH",label="",source_in_ring=True,max_degree=10000,capacity=10000000,limit=10):
+    def rings(self, source,max_depth,direction="",label="",source_in_ring="",max_degree="",capacity="",limit=""):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        根据起始顶点、方向、边的类型（可选）和最大深度等条件查找可达的环路
+        Params:
+            source：起始顶点id，必填项
+            direction：起始顶点发出的边的方向（OUT,IN,BOTH），选填项，默认是BOTH
+            label：边的类型，选填项，默认代表所有edge label
+            max_depth：步数，必填项
+            source_in_ring：环路是否包含起点，选填项，默认为true
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            limit：返回的可达环路的最大数目，选填项，默认为10  
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/rings?"
         para = ""
@@ -1416,25 +2230,33 @@ class CirroGraphTraverser():
             para = f'{para}&max_depth={max_depth}'
         if label != "":
             para = f'{para}&label={label}'
-        para = f'{para}&source_in_ring={source_in_ring}'
-        para = f'{para}&direction={direction}'
-        para = f'{para}&max_degree={max_degree}'
-        para = f'{para}&capacity={capacity}'
-        para = f'{para}&limit={limit}'
+        if source_in_ring != "":
+            para = f'{para}&source_in_ring={source_in_ring}'
+        if direction != "":
+            para = f'{para}&direction={direction}'
+        if max_degree != "":
+            para = f'{para}&max_degree={max_degree}'
+        if capacity != "":
+            para = f'{para}&capacity={capacity}'
+        if limit != "":
+            para = f'{para}&limit={limit}'
 
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
     
-    def rays(self, source,max_depth,direction="BOTH",label="",max_degree=10000,capacity=10000000,limit=10):
+    def rays(self, source,max_depth,direction="",label="",max_degree="",capacity="",limit=""):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        根据起始顶点、方向、边的类型（可选）和最大深度等条件查找发散到边界顶点的路径
+        Params:
+            source：起始顶点id，必填项
+            direction：起始顶点发出的边的方向（OUT,IN,BOTH），选填项，默认是BOTH
+            label：边的类型，选填项，默认代表所有edge label
+            max_depth：步数，必填项
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            limit：返回的非环路的最大数目，选填项，默认为10
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/rays?"
         para = ""
@@ -1446,10 +2268,14 @@ class CirroGraphTraverser():
             para = f'{para}&max_depth={max_depth}'
         if label != "":
             para = f'{para}&label={label}'
-        para = f'{para}&direction={direction}'
-        para = f'{para}&max_degree={max_degree}'
-        para = f'{para}&capacity={capacity}'
-        para = f'{para}&limit={limit}'
+        if direction != "":
+            para = f'{para}&direction={direction}'
+        if max_degree != "":
+            para = f'{para}&max_degree={max_degree}'
+        if capacity != "":
+            para = f'{para}&capacity={capacity}'
+        if limit != "":
+            para = f'{para}&limit={limit}'
 
         url = url + para[1:]
         
@@ -1457,41 +2283,77 @@ class CirroGraphTraverser():
 
     def fusiformsimilarity(self,request):
         '''
+        按照条件查询一批顶点对应的"梭形相似点"。当两个顶点跟很多共同的顶点之间有某种关系的时候，我们认为这两个点为"梭形相似点"。
+        举个例子说明"梭形相似点"：“读者A"读了100本书，可以定义读过这100本书中的80本以上的读者，是"读者A"的"梭形相似点”
+        Params:
+            sources：定义起始顶点，必填项，指定方式包括：
+                ids：通过顶点id列表提供起始顶点
+                label和properties：如果没有指定ids，则使用label和properties的联合条件查询起始顶点
+                    label：顶点的类型
+                    properties：通过属性的值查询起始顶点
+
+                    注意：properties中的属性值可以是列表，表示只要key对应的value在列表中就可以
+
+            label：边的类型，选填项，默认代表所有edge label
+
+            direction：起始顶点向外发散的方向（OUT,IN,BOTH），选填项，默认是BOTH
+
+            min_neighbors：最少邻居数目，邻居数目少于这个阈值时，认为起点不具备"梭形相似点"。比如想要找一个"读者A"读过的书的"梭形相似点"，那么min_neighbors为100时，表示"读者A"至少要读过100本书才可以有"梭形相似点"，必填项
+
+            alpha：相似度，代表：起点与"梭形相似点"的共同邻居数目占起点的全部邻居数目的比例，必填项
+
+            min_similars：“梭形相似点"的最少个数，只有当起点的"梭形相似点"数目大于或等于该值时，才会返回起点及其"梭形相似点”，选填项，默认值为1
+
+            top：返回一个起点的"梭形相似点"中相似度最高的top个，必填项，0表示全部
+
+            group_property：与min_groups一起使用，当起点跟其所有的"梭形相似点"某个属性的值有至少min_groups个不同值时，才会返回该起点及其"梭形相似点"。比如为"读者A"推荐"异地"书友时，需要设置group_property为读者的"城市"属性，min_group至少为2，选填项，不填代表不需要根据属性过滤
+
+            min_groups：与group_property一起使用，只有group_property设置时才有意义
+
+            max_degree：查询过程中，单个顶点遍历的最大邻接边数目，选填项，默认为10000
+
+            capacity：遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+
+            limit：返回的结果数目上限（一个起点及其"梭形相似点"算一个结果），选填项，默认为10
+
+            with_intermediary：是否返回起点及其"梭形相似点"共同关联的中间点，默认为false
+
+            with_vertex，选填项，默认为false：
+                true表示返回结果包含完整的顶点信息
+                false时表示只返回顶点id
         request = {
-        "sources":{
-        "ids":[],
-        "label": "person",
-        "properties": {
-            "name":"marko"
+            "sources":{
+            "ids":[],
+            "label": "person",
+            "properties": {
+                "name":"marko"
+            }
+            },
+            "label":"created",
+            "direction":"OUT",
+            "min_neighbors":2,
+            "alpha":0.75,
+            "min_similars":1,
+            "top":0,
+            "group_property":"city",
+            "min_groups":2,
+            "max_degree": 10000,
+            "capacity": -1,
+            "limit": -1,
+            "with_intermediary": False,
+            "with_vertex":False
         }
-         },
-        "label":"created",
-        "direction":"OUT",
-        "min_neighbors":2,
-        "alpha":0.75,
-        "min_similars":1,
-        "top":0,
-        "group_property":"city",
-        "min_groups":2,
-        "max_degree": 10000,
-        "capacity": -1,
-        "limit": -1,
-        "with_intermediary": False,
-        "with_vertex":False
-        }
+        return: CirroGraphResponse
         '''
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/fusiformsimilarity"
         return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
     
     def verticesByIds(self,vertexIds):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        根据顶点的id列表，批量查询顶点 s
+        Params:
+            ids：要查询的顶点id列表
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/vertices?"
         para = ''
@@ -1506,13 +2368,10 @@ class CirroGraphTraverser():
 
     def verticesShard(self,split_size):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        通过指定的分片大小split_size，获取顶点分片信息
+        Params:
+            split_size：分片大小，必填项
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/vertices/shards?"
         para = f'&split_size={split_size}'
@@ -1520,35 +2379,36 @@ class CirroGraphTraverser():
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def verticesByShard(self,start,end,page='',page_limit=100000):
+    def verticesByShard(self,start,end,page="",page_limit=""):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        通过指定的分片信息批量查询顶点
+        Params:
+            start：分片起始位置，必填项
+            end：分片结束位置，必填项
+            page：分页位置，选填项，默认为null，不分页；当page为“”时表示分页的第一页，从start指示的位置开始
+            page_limit：分页获取顶点时，一页中顶点数目的上限，选填项，默认为100000
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/vertices/scan?"
         para = ''
-        para = f'{para}&start={start}'
-        para = f'{para}&end={end}'
-        para = f'{para}&page={page}'
-        para = f'{para}&page_limit={page_limit}'
+        if start != '':
+            para = f'{para}&start={start}'
+        if end != '':
+            para = f'{para}&end={end}'
+        if page != '':
+            para = f'{para}&page={page}'
+        if page_limit != '':
+            para = f'{para}&page_limit={page_limit}'
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
     
     def edgesByIds(self,edgesIds):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        根据边的id列表，批量查询边
+        Params:
+            ids：要查询的边id列表
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/edges?"
         para = ''
@@ -1560,39 +2420,113 @@ class CirroGraphTraverser():
 
     def edgesShard(self,split_size):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        通过指定的分片大小split_size，获取边分片信息
+        Params:
+            split_size：分片大小，必填项
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/edges/shards?"
-        para = f'&split_size={split_size}'
+        if split_size != '':
+            para = f'&split_size={split_size}'
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def edgesByShard(self,start,end,page='',page_limit=100000):
+    def edgesByShard(self,start,end,page="",page_limit=""):
         """
-        根据起始顶点、目的顶点、方向、边的类型(可选)和最大深度,查找一条最短路径
-        :param source:
-        :param target:
-        :param direction: (IN | OUT | BOTH)
-        :param max_depth:
-        :param label:
-        :return: CirroGraphResponse
+        通过指定的分片信息批量查询边
+        Params:
+            start：分片起始位置，必填项
+            end：分片结束位置，必填项
+            page：分页位置，选填项，默认为null，不分页；当page为“”时表示分页的第一页，从start指示的位置开始
+            page_limit：分页获取边时，一页中边数目的上限，选填项，默认为100000
+        return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/edges/scan?"
         para = ''
-        para = f'{para}&start={start}'
-        para = f'{para}&end={end}'
-        para = f'{para}&page={page}'
-        para = f'{para}&page_limit={page_limit}'
+        if start != '':
+            para = f'{para}&start={start}'
+        if end != '':
+            para = f'{para}&end={end}'
+        if page != '':
+            para = f'{para}&page={page}'
+        if page_limit != '':
+            para = f'{para}&page_limit={page_limit}'
         url = url + para[1:]
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
+    
+    def personalrank(self,request):
+        """
+            Personal Rank 算法典型场景是用于推荐应用中, 根据某个点现有的出边, 推荐具有相近 / 相同关系的其他点
+            Params:
+                必填项:
+
+                    source: 源顶点 id
+                    label: 源点出发的某类边 label，须连接两类不同顶点
+                选填项:
+                    alpha：每轮迭代时从某个点往外走的概率，与 PageRank 算法中的 alpha 类似，取值区间为 (0, 1], 默认值 0.85
+                    max_degree: 查询过程中，单个顶点遍历的最大邻接边数目，默认为 10000
+                    max_depth: 迭代次数，取值区间为 [2, 50], 默认值 5
+                    with_label：筛选结果中保留哪些结果，可选以下三类, 默认为 BOTH_LABEL
+                        SAME_LABEL：仅保留与源顶点相同类别的顶点
+                        OTHER_LABEL：仅保留与源顶点不同类别（二分图的另一端）的顶点
+                        BOTH_LABEL：同时保留与源顶点相同和相反类别的顶点
+                    limit: 返回的顶点的最大数目，默认为 100
+                    max_diff: 提前收敛的精度差, 默认为 0.0001 (后续实现)
+                    sorted：返回的结果是否根据 rank 排序，为 true 时降序排列，反之不排序，默认为 true
+            return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/traversers/personalrank"
+        return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
+    
+    def neighborrank(self,request):
+        """
+            在一般图结构中，找出每一层与给定起点相关性最高的前 N 个顶点及其相关度，用图的语义理解就是：从起点往外走， 走到各层各个顶点的概率。
+            Params:
+                source: 源顶点 id，必填项
+                alpha：每轮迭代时从某个点往外走的概率，与 PageRank 算法中的 alpha 类似，必填项，取值区间为 (0, 1]
+                steps: 表示从起始顶点走过的路径规则，是一组 Step 的列表，每个 Step 对应结果中的一层，必填项。每个 Step 的结构如下：
+                    direction：表示边的方向（OUT, IN, BOTH），默认是 BOTH
+                    labels：边的类型列表，多个边类型取并集
+                    max_degree：查询过程中，单个顶点遍历的最大邻接边数目，默认为 10000 (注: 0.12版之前 step 内仅支持 degree 作为参数名, 0.12开始统一使用 max_degree, 并向下兼容 degree 写法)
+                    top：在结果中每一层只保留权重最高的前 N 个结果，默认为 100，最大值为 1000
+                capacity: 遍历过程中最大的访问的顶点数目，选填项，默认为10000000
+            request:{
+                "source":1,
+                "steps":[
+                    {
+                        "direction":"OUT",
+                        "labels":[
+                            "knows"
+                        ],
+                        "max_degree":-1,
+                        "top":100
+                    },
+                    {
+                        "direction":"OUT",
+                        "labels":[
+                            "created",
+                        ],
+                        "max_degree":-1,
+                        "top":100
+                    },
+                    {
+                        "direction":"OUT",
+                        "labels":[
+                            "stredge"
+                        ],
+                        "max_degree":-1,
+                        "top":100
+                    }
+                ],
+                "alpha":0.9,
+                "capacity":-1
+            }
+            return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/traversers/neighborrank"
+        return CirroGraphResponse(requests.post(url,json.dumps(request),headers=self.headers,auth=self.auth))
 
 if __name__=="__main__":
-    passs
+    pass
