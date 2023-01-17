@@ -19,6 +19,10 @@ class CirroGraphResponse(object):
             self.response = response.text
         else:
             self.response = response.status_code
+    
+    # def __init__(self, code,text):
+    #     self.status_code = code
+    #     self.response = text
 
 # CirroGraphClient Class
 class CirroGraphClient(object):
@@ -116,76 +120,76 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def get_graph_config(self,graph):
+    def get_graph_config(self):
         """
         查看某个图的配置,该操作需要管理员权限
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph +"/conf"
+        url = self.host + "/graphs" + "/" + self.graph +"/conf"
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def get_graph_mode(self,graph):
+    def get_graph_mode(self):
         """
         查看某个图的模式
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph +"/mode"
+        url = self.host + "/graphs" + "/" + self.graph +"/mode"
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def set_graph_mode(self,graph,modename):
+    def set_graph_mode(self,modename):
         """
         设置某个图的模式. 该操作需要管理员权限 
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph +"/mode"
+        url = self.host + "/graphs" + "/" + self.graph +"/mode"
         
         return CirroGraphResponse(requests.put(url,data=json.dumps(modename),headers=self.headers,auth=self.auth))
 
-    def get_graph_read_mode(self,graph):
+    def get_graph_read_mode(self):
         """
         查看某个图的读模式
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph +"/graph_read_mode"
+        url = self.host + "/graphs" + "/" + self.graph +"/graph_read_mode"
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def set_graph_read_mode(self,graph,modename):
+    def set_graph_read_mode(self,modename):
         """
         设置某个图的读模式. 该操作需要管理员权限
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph +"/graph_read_mode"
+        url = self.host + "/graphs" + "/" + self.graph +"/graph_read_mode"
         
         return CirroGraphResponse(requests.put(url,data=json.dumps(modename),headers=self.headers,auth=self.auth))
 
-    def graph_snapshot_create(self,graph):
+    def graph_snapshot_create(self):
         """
         创建快照
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph +"/snapshot_create"
+        url = self.host + "/graphs" + "/" + self.graph +"/snapshot_create"
         
         return CirroGraphResponse(requests.put(url,headers=self.headers,auth=self.auth))
 
     #有bug
-    def graph_snapshot_resume(self,graph):
+    def graph_snapshot_resume(self):
         """
         快照恢复
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph +"/snapshot_resume"
+        url = self.host + "/graphs" + "/" + self.graph +"/snapshot_resume"
         
         return CirroGraphResponse(requests.put(url,headers=self.headers,auth=self.auth))
 
-    def graph_compact(self,graph):
+    def graph_compact(self):
         """
         手动压缩图，该操作需要管理员权限 
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph +"/compact"
+        url = self.host + "/graphs" + "/" + self.graph +"/compact"
         
         return CirroGraphResponse(requests.put(url,headers=self.headers,auth=self.auth))
 
@@ -201,21 +205,21 @@ class CirroGraphClient(object):
         
     #     return CirroGraphResponse(requests.post(url, headers=self.headers,auth=self.auth))
 
-    def clear_graph(self,graph):
+    def clear_graph(self):
         """
         清空某个图的全部数据,包括schema、vertex、edge和索引等,该操作需要管理员权限
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph + "/clear?confirm_message=I%27m+sure+to+delete+all+data"
+        url = self.host + "/graphs" + "/" + self.graph + "/clear?confirm_message=I%27m+sure+to+delete+all+data"
         
         return CirroGraphResponse(requests.delete(url, headers=self.headers,auth=self.auth))
 
-    def drop_graph(self,graph):
+    def drop_graph(self):
         """
         删除某个图,包含配置文件以及存储的全部数据,包括schema、vertex、edge和索引等,该操作需要管理员权限
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + graph + "/?confirm_message=I%27m%20sure%20to%20drop%20the%20graph"
+        url = self.host + "/graphs" + "/" + self.graph + "/?confirm_message=I%27m%20sure%20to%20drop%20the%20graph"
         
         return CirroGraphResponse(requests.delete(url, headers=self.headers,auth=self.auth))
     
@@ -237,23 +241,6 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.post(url, data=json.dumps(propertykeys), headers=self.headers,auth=self.auth))
 
-    def create_property_key(self, propertykey_name, dataType, cardinality):
-        """
-        创建一个propertykey
-        :param property_name:
-        :param dataType: INT TEXT
-        :param cardinality:  SINGLE
-        :return: CirroGraphResponse
-        """
-        url = self.host + "/graphs" + "/" + self.graph + "/schema/propertykeys"
-        propertykeys = {
-            "name": propertykey_name,
-            "data_type": dataType,
-            "cardinality": cardinality
-        }
-        
-        return CirroGraphResponse(requests.post(url, data=json.dumps(propertykeys), headers=self.headers,auth=self.auth))
-
     def add_propertykey_userdata(self, property_name, user_data):
         """
         为已存在的 PropertyKey 添加userdata
@@ -267,7 +254,6 @@ class CirroGraphClient(object):
             "name": property_name,
             "user_data": user_data
         }
-        
         return CirroGraphResponse(requests.put(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
 
     def delete_propertykey_userdata(self, property_name, user_data):
@@ -293,7 +279,7 @@ class CirroGraphClient(object):
         """
         url = self.host + "/graphs" + "/" + self.graph + "/schema/propertykeys"
         
-        return CirroGraphResponse(requests.get(url))
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
 
     def get_propertykey_name(self, property_name):
         """
@@ -304,7 +290,7 @@ class CirroGraphClient(object):
         url = self.host + "/graphs" + "/" + self.graph + "/schema/propertykeys" \
               + "/" + property_name
         
-        return CirroGraphResponse(requests.get(url))
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
 
     def delete_propertykey_name(self, property_name):
         """
@@ -315,7 +301,7 @@ class CirroGraphClient(object):
         url = self.host + "/graphs" + "/" + self.graph \
               + "/schema/propertykeys" + "/" + property_name
         
-        return CirroGraphResponse(requests.delete(url))
+        return CirroGraphResponse(requests.delete(url,headers=self.headers,auth=self.auth))
 
     def create_vertexlabel(self, data):
         """
@@ -349,7 +335,7 @@ class CirroGraphClient(object):
             "nullable_keys": nullable
         }
         
-        return CirroGraphResponse(requests.put(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
+        return CirroGraphResponse(requests.put(url,  data=json.dumps(data), headers=self.headers,auth=self.auth))
 
     def add_vertexlabel_userdata(self, name, userdata):
         """
@@ -477,7 +463,7 @@ class CirroGraphClient(object):
             "user_data": userdata
         }
         
-        return CirroGraphResponse(requests.put(url, headers=self.headers,auth=self.auth))
+        return CirroGraphResponse(requests.put(url,data=json.dumps(data),headers=self.headers,auth=self.auth))
 
     def get_edgelabels(self):
         """
@@ -593,7 +579,7 @@ class CirroGraphClient(object):
               + self.graph + "/graph/vertices/batch"
         
         return CirroGraphResponse(requests.post(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
-
+    
     def update_vertex_properties(self, vertex_id, label, properties):
         """
         更新顶点属性
@@ -603,7 +589,7 @@ class CirroGraphClient(object):
         :return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph \
-              + "/graph/vertices/" + vertex_id + "?action=append"
+              + "/graph/vertices/" + '"' +vertex_id + '"'+"?action=append"
         data = {
             "label": label,
             "properties": properties
@@ -611,7 +597,17 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.put(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
 
-    #批量更新顶点属性
+    def update_vertex_properties_batch(self, data):
+        """
+        批量更新顶点属性
+        :param vertex_id:
+        :param label:
+        :param properties:
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph \
+              + "/graph/vertices/batch"        
+        return CirroGraphResponse(requests.put(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
 
     def delete_vertex_properties(self, vertex_id, label, properties):
         """
@@ -622,7 +618,7 @@ class CirroGraphClient(object):
         :return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph \
-              + "/graph/vertices/" + vertex_id + "?action=eliminate"
+              + "/graph/vertices/" + '"'+vertex_id +'"'+"?action=eliminate"
         data = {
             "label": label,
             "properties": properties
@@ -630,7 +626,7 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.put(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
 
-    def get_vertexs_condition(self, label="", properties='', limit=0):
+    def get_vertexs_condition(self, label="", properties={}, limit=0):
         """
         获取符合条件的顶点
         :param label:
@@ -647,7 +643,7 @@ class CirroGraphClient(object):
         if label != "":
             para = para + "&label=" + label
         if properties != {}:
-            para = para + "&properties=" + properties
+            para = para + "&properties=" + json.dumps(properties)
         if limit > 0:
             para = para + "&limit=" + limit
         url = url + para[1:]
@@ -682,19 +678,24 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def delete_vertex_id(self, vertex_id):
+    def delete_vertex_id(self, vertex_id,label=''):
         """
         根据ID 删除顶点
         :param vertex_id:
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + self.graph + "/graph/vertices/" + str(vertex_id)
+        url = self.host + "/graphs" + "/" + self.graph + "/graph/vertices/" +'"'+vertex_id+'"'
+        if(label != ''):
+            url = f'{url}?label={label}'
+        
         
         return CirroGraphResponse(requests.delete(url, headers=self.headers,auth=self.auth))
 
     def create_edge(self, data):
         """
          create an edge
+         Params
+            check_vertex: 是否检查顶点存在(true | false)，当设置为 true 而待插入边的源顶点或目标顶点不存在时会报错。
         :param data: {
             outv:
             inv:
@@ -705,7 +706,6 @@ class CirroGraphClient(object):
         :return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/graph/edges"
-        
         return CirroGraphResponse(requests.post(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
 
     def create_edge6(self, edge_label, outv, inv, outv_label, inv_label, properties):
@@ -731,7 +731,7 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.post(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
 
-    def create_edge_batch(self, data):
+    def create_edge_batch(self, data,check_vertex):
         """
         创建多条边
         :param data:
@@ -762,6 +762,9 @@ class CirroGraphClient(object):
         :return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/graph/edges/batch"
+
+        if(check_vertex != ''):
+            url = f'{url}?check_vertex={check_vertex}'
         
         return CirroGraphResponse(requests.post(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
 
@@ -779,7 +782,17 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.put(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
 
-    #批量更新边属性
+    def update_edge_properties_batch(self,data):
+        """
+        批量更新边的属性
+        :param properties:
+        :return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph \
+              + "/graph/edges/batch"
+
+        return CirroGraphResponse(requests.put(url, data=json.dumps(data), headers=self.headers,auth=self.auth))
+
 
     def delete_edge_properties(self, edge_id, properties):
         """
@@ -809,11 +822,12 @@ class CirroGraphClient(object):
             properties = {}
         url = self.host + "/graphs" + "/" + self.graph + "/graph/edges?"
         para = ""
-        if vertex_id != "":
-            if direction != "":
-                para = para + "&vertex_id=" + vertex_id + "&direction=" + direction
-            else:
-                return CirroGraphResponse(400, "direction can not be empty")
+        if type(vertex_id) is int:
+            if(direction != ''):
+                para = f'{para}&vertex_id={vertex_id}&direction={direction}'
+        else:
+            if(direction != ''):
+                para = f'{para}&vertex_id="{vertex_id}"&direction={direction}'
         if label != "":
             para = para + "&label=" + label
         if properties != {}:
@@ -833,10 +847,7 @@ class CirroGraphClient(object):
         """
         url = self.host + "/graphs" + "/" + self.graph + "/graph/edges?"
         if page == "":
-            if limit <= 0:
-                res = CirroGraphResponse(400, "parameter:limit can not be empty ")
-            else:
-                url = url + "page&limit=" + str(limit)
+            url = url + "page&limit=" + str(limit)
         else:
             url = url + "page=" + str(page) + "&limit=" + str(limit)
         
@@ -849,7 +860,6 @@ class CirroGraphClient(object):
         :return: CirroGraphResponse
         """
         url = self.host + "/graphs" + "/" + self.graph + "/graph/edges/" + edge_id
-        
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
     def delete_edge_id(self, edge_id):
@@ -937,7 +947,7 @@ class CirroGraphClient(object):
         :param task_id:
         :return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + self.graph + "/tasks/" + task_id
+        url = self.host + "/graphs" + "/" + self.graph + "/tasks/" + str(task_id)
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
@@ -1015,7 +1025,7 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.get(url, headers=self.headers,auth=self.auth))
 
-    def execute_germlin_post(self, gremlin, bindings='', language="gremlin-groovy", aliases={}):
+    def execute_germlin_post(self, gremlin):
         """
         向CirroGraphServer发送gremlin语句(post),同步执行
         :param gremlin: 要发送给CirroGraphServer执行的gremlin语句
@@ -1024,8 +1034,6 @@ class CirroGraphClient(object):
         :param aliases: 为存在于图空间的已有变量添加别名
         :return: CirroGraphResponse
         """
-        if bindings == '':
-            bindings = {}
         url = self.host + "/gremlin"
 
         return CirroGraphResponse(requests.post(url, data=json.dumps(gremlin), headers=self.headers,auth=self.auth))
@@ -1367,28 +1375,110 @@ class CirroGraphClient(object):
         
         return CirroGraphResponse(requests.put(url, data=json.dumps(request), headers=self.headers,auth=self.auth))
 
-    def get_targets(self,limit=''):
+    def get_belongs(self,limit=''):
         """
-        查询资源列表   
+        查询关联角色列表
         Params:
-            limit: 返回结果条数的上限
+            id: 返回结果条数的上限
+        request:
+            {
+                "belong_description": "update test"
+            }
         return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + self.graph + "/auth/targets"
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/belongs"
 
-        if limit != '':
-            url += f'?limit={limit}'
+        if(limit != ''):
+            url = f'{url}?limit={limit}'
         
         return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
 
-    def get_target(self,id):
+    def get_belong(self,belongid):
         """
-        查询某个资源   
+        查看某个关联角色
         Params:
-            id: 需要查询的资源Id
+            belongid: 需要查询的关联角色Id
         return: CirroGraphResponse
         """
-        url = self.host + "/graphs" + "/" + self.graph + "/auth/targets/"+id        
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/belongs/"+belongid
+        
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
+
+    def add_accesses(self, request):
+        """
+        给用户组赋予资源的权限，主要包含：读操作(READ)、写操作(WRITE)、
+        删除操作(DELETE)、执行操作(EXECUTE)等。赋权接口包括：赋权的创建、删除、修改和查询。
+        Params:
+            group: 用户组 Id
+            target: 资源 Id
+            access_permission: 权限许可
+                READ：读操作，所有的查询，包括查询Schema、查顶点/边，查询顶点和边的数量VERTEX_AGGR/EDGE_AGGR，也包括读图的状态STATUS、变量VAR、任务TASK等；
+                WRITE：写操作，所有的创建、更新操作，包括给Schema增加property key，给顶点增加或更新属性等；
+                DELETE：删除操作，包括删除元数据、删除顶点/边；
+                EXECUTE：执⾏操作，包括执⾏Gremlin语句、执⾏Task、执⾏metadata函数；
+            access_description: 赋权描述
+        request:
+            {
+                "group": "-69:all",
+                "target": "-77:all",
+                "access_permission": "READ"
+            }
+
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/accesses"
+        
+        return CirroGraphResponse(requests.post(url, data=json.dumps(request), headers=self.headers,auth=self.auth))
+
+    def delete_accesses(self, accessesid):
+        """
+        删除赋权
+        Params:
+            id: 需要删除的赋权Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/accesses/"+accessesid
+        
+        return CirroGraphResponse(requests.delete(url,headers=self.headers,auth=self.auth))
+
+    def update_accesses(self,accessesid,request):
+        """
+        赋权只能修改描述，不能修改用户组、资源和权限许可，如果需要修改赋权的关系，可以删除原来的赋权关系，新增赋权。
+        Params:
+            id: 需要修改的关联角色Id
+        request:
+            {
+                "access_description": "update test2"
+            }
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/accesses/"+accessesid
+        
+        return CirroGraphResponse(requests.put(url, data=json.dumps(request), headers=self.headers,auth=self.auth))
+
+    def get_accesses(self,limit=''):
+        """
+        查询赋权列表
+        Params:
+            id: 返回结果条数的上限
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/accesses"
+
+        if(limit != ''):
+            url = f'{url}?limit={limit}'
+        
+        return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
+
+    def get_access(self,accessesid):
+        """
+        查看某个赋权
+        Params:
+            id: 需要查询的赋权Id
+        return: CirroGraphResponse
+        """
+        url = self.host + "/graphs" + "/" + self.graph + "/auth/accesses/"+accessesid
+        
         return CirroGraphResponse(requests.get(url,headers=self.headers,auth=self.auth))
 
 
@@ -1429,12 +1519,9 @@ class CirroGraphTraverser():
         url = self.host + "/graphs" + "/" + self.graph + "/traversers/kout?"
         para = ""
         if type(source) is int:
-                para = f'{para}&source={source}'
+            para = f'{para}&source={source}'
         else:
-            if source.isnumeric():
-                para = f'{para}&source={source}'
-            else:
-                para = f'{para}&source="{source}"'
+            para = f'{para}&source="{source}"'
         if max_depth != "":
             para = para + "&max_depth=" + str(max_depth)
         if direction != "":
